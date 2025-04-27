@@ -1,93 +1,126 @@
 use crossterm::cursor::{MoveToColumn, MoveUp};
-use crossterm::event::{
-    DisableBracketedPaste, DisableFocusChange, DisableMouseCapture, EnableBracketedPaste,
-    EnableFocusChange, EnableMouseCapture, Event, KeyCode, read,
-};
+use crossterm::event::{Event, KeyCode, read};
 use crossterm::execute;
 use crossterm::style::Print;
 use crossterm::terminal::{Clear, ClearType};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
-use std::io::{self};
+use std::io;
+
+const MAX_SELECTION_LENGTH: usize = 6;
 
 fn main() -> io::Result<()> {
-    let emojis = return_emojis();
+    let emojis: Vec<&'static str> = return_emojis();
     let mut selection: usize = 2;
     let mut offset: usize = 0;
+    let mut user_input: String = String::new();
 
-    draw_menu(&emojis, offset, selection);
+    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+    draw_menu(&filtered_emojis, offset, selection, &user_input);
 
-    execute!(
-        std::io::stdout(),
-        EnableBracketedPaste,
-        EnableFocusChange,
-        EnableMouseCapture,
-    )?;
     enable_raw_mode().expect("Failed to enable raw mode");
     loop {
         match read()? {
             Event::Key(event) => match event.code {
                 KeyCode::Down => {
-                    if offset < emojis.len() - 6 {
+                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    let offset_ = offset as isize;
+                    let selection_ = selection as isize;
+                    let max_selection_length_ = MAX_SELECTION_LENGTH as isize;
+                    
+                    if offset_ < filtered_emojis.len() as isize - max_selection_length_ {
                         offset += 1;
-                    } else if selection < 5 {
+                    }
+                    
+                    if selection >= return_length(&filtered_emojis) && filtered_emojis.len() != 0 {
+                        selection = return_length(&filtered_emojis) - 1;
+                    } else if selection_ < return_length(&filtered_emojis) as isize - 1 && offset_ >= filtered_emojis.len() as isize - max_selection_length_ {
                         selection += 1;
                     }
-                    redraw_menu(&emojis, offset, selection);
+
+                    redraw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
                 KeyCode::Up => {
+                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
                     if offset > 0 {
                         offset -= 1;
                     } else if selection >= 1 {
                         selection -= 1;
                     }
-                    redraw_menu(&emojis, offset, selection);
+                    redraw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
                 KeyCode::Enter => {
                     break;
+                }
+                KeyCode::Char(c) => {
+                    offset = 0;
+                    selection = 0;
+                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    delete_menu(&filtered_emojis);
+                    user_input += &c.to_string();
+                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    draw_menu(&filtered_emojis, offset, selection, &user_input);
+                }
+                KeyCode::Backspace => {
+                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    delete_menu(&filtered_emojis);
+                    user_input.pop();
+                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    draw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
                 _ => {}
             },
             _ => {}
         }
     }
-    execute!(
-        std::io::stdout(),
-        DisableBracketedPaste,
-        DisableFocusChange,
-        DisableMouseCapture
-    )?;
     disable_raw_mode().expect("Failed to disable raw mode");
 
     Ok(())
 }
 
-fn redraw_menu(emojis: &Vec<&'static str>, offset: usize, selection: usize) {
-    delete_menu();
-    draw_menu(emojis, offset, selection);
+fn redraw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String) {
+    delete_menu(emojis);
+    draw_menu(emojis, offset, selection, user_input);
 }
 
-fn draw_menu(emojis: &Vec<&'static str>, offset: usize, selection: usize) {
-    for i in 0..6 {
-        execute!(io::stdout(), MoveToColumn(0))
-            .expect("Failed to move cursor to the start of the line");
+fn draw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String) {
+    cursor_to_start();
+    let headline = "Choose a gitmoji! ".to_string() + user_input + "\n";
+    execute!(io::stdout(), Print(headline)).expect("Failed to print select text");
+    for i in 0..MAX_SELECTION_LENGTH {
+        cursor_to_start();
         if i == selection {
             execute!(io::stdout(), Print("> ".to_string())).expect("Failed to print '> '")
         } else {
             execute!(io::stdout(), Print("  ".to_string())).expect("Failed to print '  '")
         }
-        execute!(
-            io::stdout(),
-            Print(emojis[i + offset]),
-            Print("\n".to_string()),
-        )
-        .expect("something might have gone wrong...");
+        if i + offset < emojis.len() {
+            execute!(
+                io::stdout(),
+                Print(emojis[i + offset]),
+                Print("\n".to_string()),
+            )
+            .expect("Failed to print menu");
+        }
     }
 }
 
-fn delete_menu() {
-    for _i in 0..6 {
+fn delete_menu(emojis: &Vec<&&str>) {
+    for _i in 0..return_length(emojis) + 1 {
         execute!(io::stdout(), MoveUp(1), Clear(ClearType::CurrentLine)).expect("Failed to clear");
     }
+}
+
+fn return_length(emojis: &Vec<&&str>) -> usize {
+    if emojis.len() > MAX_SELECTION_LENGTH {
+        MAX_SELECTION_LENGTH
+    } else {
+        emojis.len()
+    }
+}
+
+fn cursor_to_start() {
+    execute!(io::stdout(), MoveToColumn(0))
+        .expect("Failed to move cursor to the start of the line");
 }
 
 fn return_emojis() -> Vec<&'static str> {
