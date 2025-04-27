@@ -165,13 +165,7 @@ fn reload_commit_message(commit_message: &String, end: bool) {
         }),
         Print(text),
         SetAttribute(Attribute::Reset),
-        SetForegroundColor(Rgb {
-            r: 186,
-            g: 194,
-            b: 222,
-        }),
         Print(commit_message),
-        SetAttribute(Attribute::Reset),
     )
     .expect("Failed to reload title input");
 }
