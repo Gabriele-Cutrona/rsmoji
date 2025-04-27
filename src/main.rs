@@ -1,4 +1,4 @@
-use crossterm::cursor::{MoveToColumn, MoveUp};
+use crossterm::cursor::{Hide, MoveToColumn, MoveUp, Show};
 use crossterm::event::{Event, KeyCode, read};
 use crossterm::execute;
 use crossterm::style::{Attribute, Color::Rgb, Print, SetAttribute, SetForegroundColor};
@@ -13,11 +13,13 @@ fn main() -> io::Result<()> {
     let mut offset: usize = 0;
     let mut user_input: String = String::new();
 
+    execute!(io::stdout(), Hide).expect("Failed to hide cursor");
+
     let mut filtered_emojis: Vec<&&str> = emojis
         .iter()
-        .filter(|&emoji| emoji.contains(&user_input))
+        .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
         .collect();
-    draw_menu(&filtered_emojis, offset, selection, &user_input);
+    draw_menu(&filtered_emojis, offset, selection, &user_input, false);
 
     enable_raw_mode().expect("Failed to enable raw mode");
     loop {
@@ -40,7 +42,7 @@ fn main() -> io::Result<()> {
                         selection += 1;
                     }
 
-                    redraw_menu(&filtered_emojis, offset, selection, &user_input);
+                    redraw_menu(&filtered_emojis, offset, selection, &user_input, false);
                 }
                 KeyCode::Up => {
                     if offset > 0 {
@@ -48,57 +50,64 @@ fn main() -> io::Result<()> {
                     } else if selection >= 1 {
                         selection -= 1;
                     }
-                    redraw_menu(&filtered_emojis, offset, selection, &user_input);
+                    redraw_menu(&filtered_emojis, offset, selection, &user_input, false);
                 }
+
                 KeyCode::Enter => {
-                    break;
+                    if filtered_emojis.len() != 0 {
+                        redraw_menu(&filtered_emojis, offset, selection, &user_input, true);
+                        break;
+                    }
                 }
+
                 KeyCode::Char(c) => {
                     offset = 0;
                     selection = 0;
                     filtered_emojis = emojis
                         .iter()
-                        .filter(|&emoji| emoji.contains(&user_input))
+                        .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
                         .collect();
                     delete_menu(&filtered_emojis);
                     user_input += &c.to_string();
                     filtered_emojis = emojis
                         .iter()
-                        .filter(|&emoji| emoji.contains(&user_input))
+                        .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
                         .collect();
-                    draw_menu(&filtered_emojis, offset, selection, &user_input);
+                    draw_menu(&filtered_emojis, offset, selection, &user_input, false);
                 }
                 KeyCode::Backspace => {
                     filtered_emojis = emojis
                         .iter()
-                        .filter(|&emoji| emoji.contains(&user_input))
+                        .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
                         .collect();
                     delete_menu(&filtered_emojis);
                     user_input.pop();
                     filtered_emojis = emojis
                         .iter()
-                        .filter(|&emoji| emoji.contains(&user_input))
+                        .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
                         .collect();
-                    draw_menu(&filtered_emojis, offset, selection, &user_input);
+                    draw_menu(&filtered_emojis, offset, selection, &user_input, false);
                 }
                 _ => {}
             },
             _ => {}
         }
     }
-    disable_raw_mode().expect("Failed to disable raw mode");
 
+    disable_raw_mode().expect("Failed to disable raw mode");
+    execute!(io::stdout(), Show).expect("Failed to unhide cursor");
     Ok(())
 }
 
-fn redraw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String) {
+fn redraw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String, end: bool) {
     delete_menu(emojis);
-    draw_menu(emojis, offset, selection, user_input);
+    draw_menu(emojis, offset, selection, user_input, end);
 }
 
-fn draw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String) {
+fn draw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String, end: bool) {
     cursor_to_start();
-    let user_input: String = user_input.to_string() + "\n";
+    let cursor = if end { "" } else { "█" };
+    let user_input: String = user_input.to_string() + cursor + "\n";
     execute!(
         io::stdout(),
         SetAttribute(Attribute::Bold),
