@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-inquire = "0.7.5"
+crossterm = "0.29.0"

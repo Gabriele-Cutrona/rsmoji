@@ -1,12 +1,93 @@
-use inquire::Select;
+use crossterm::cursor::{MoveToColumn, MoveUp};
+use crossterm::event::{
+    DisableBracketedPaste, DisableFocusChange, DisableMouseCapture, EnableBracketedPaste,
+    EnableFocusChange, EnableMouseCapture, Event, KeyCode, read,
+};
+use crossterm::execute;
+use crossterm::style::Print;
+use crossterm::terminal::{Clear, ClearType};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use std::io::{self};
 
-fn main() {
+fn main() -> io::Result<()> {
     let emojis = return_emojis();
-    
-    let gitmoji: &str = Select::new("Select a gitmoji", emojis).prompt().expect("Error: InquireError");
-    let gitmoji: Vec<char> = gitmoji.chars().collect();
-    let gitmoji: char = gitmoji[0];
-    dbg!("{}", gitmoji);
+    let mut selection: usize = 2;
+    let mut offset: usize = 0;
+
+    draw_menu(&emojis, offset, selection);
+
+    execute!(
+        std::io::stdout(),
+        EnableBracketedPaste,
+        EnableFocusChange,
+        EnableMouseCapture,
+    )?;
+    enable_raw_mode().expect("Failed to enable raw mode");
+    loop {
+        match read()? {
+            Event::Key(event) => match event.code {
+                KeyCode::Down => {
+                    if offset < emojis.len() - 6 {
+                        offset += 1;
+                    } else if selection < 5 {
+                        selection += 1;
+                    }
+                    redraw_menu(&emojis, offset, selection);
+                }
+                KeyCode::Up => {
+                    if offset > 0 {
+                        offset -= 1;
+                    } else if selection >= 1 {
+                        selection -= 1;
+                    }
+                    redraw_menu(&emojis, offset, selection);
+                }
+                KeyCode::Enter => {
+                    break;
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+    execute!(
+        std::io::stdout(),
+        DisableBracketedPaste,
+        DisableFocusChange,
+        DisableMouseCapture
+    )?;
+    disable_raw_mode().expect("Failed to disable raw mode");
+
+    Ok(())
+}
+
+fn redraw_menu(emojis: &Vec<&'static str>, offset: usize, selection: usize) {
+    delete_menu();
+    draw_menu(emojis, offset, selection);
+}
+
+fn draw_menu(emojis: &Vec<&'static str>, offset: usize, selection: usize) {
+    for i in 0..6 {
+        execute!(io::stdout(), MoveToColumn(0))
+            .expect("Failed to move cursor to the start of the line");
+        if i == selection {
+            execute!(io::stdout(), Print("> ".to_string())).expect("Failed to print '> '")
+        } else {
+            execute!(io::stdout(), Print("  ".to_string())).expect("Failed to print '  '")
+        }
+        execute!(
+            io::stdout(),
+            Print(emojis[i + offset]),
+            Print("\n".to_string()),
+        )
+        .expect("something might have gone wrong...");
+    }
+}
+
+fn delete_menu() {
+    for _i in 0..6 {
+        execute!(io::stdout(), MoveUp(1), Clear(ClearType::CurrentLine)).expect("Failed to clear");
+    }
 }
 
 fn return_emojis() -> Vec<&'static str> {
