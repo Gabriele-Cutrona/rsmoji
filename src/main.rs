@@ -1,9 +1,10 @@
-use crossterm::cursor::{Hide, MoveToColumn, MoveUp, Show};
+use crossterm::cursor::{Hide, MoveDown, MoveToColumn, MoveUp, Show};
 use crossterm::event::{Event, KeyCode, read};
 use crossterm::execute;
 use crossterm::style::{Attribute, Color::Rgb, Print, SetAttribute, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode};
 use std::io;
+use std::process::Command;
 
 const MAX_SELECTION_LENGTH: usize = 6;
 
@@ -19,7 +20,7 @@ fn main() -> io::Result<()> {
         .iter()
         .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
         .collect();
-    draw_menu(&filtered_emojis, offset, selection, &user_input, false);
+    draw_menu(&filtered_emojis, offset, selection, &user_input);
 
     enable_raw_mode().expect("Failed to enable raw mode");
     loop {
@@ -42,20 +43,21 @@ fn main() -> io::Result<()> {
                         selection += 1;
                     }
 
-                    redraw_menu(&filtered_emojis, offset, selection, &user_input, false);
+                    redraw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
+
                 KeyCode::Up => {
                     if offset > 0 {
                         offset -= 1;
                     } else if selection >= 1 {
                         selection -= 1;
                     }
-                    redraw_menu(&filtered_emojis, offset, selection, &user_input, false);
+                    redraw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
 
                 KeyCode::Enter => {
                     if filtered_emojis.len() != 0 {
-                        redraw_menu(&filtered_emojis, offset, selection, &user_input, true);
+                        delete_menu(&filtered_emojis);
                         break;
                     }
                 }
@@ -73,7 +75,7 @@ fn main() -> io::Result<()> {
                         .iter()
                         .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
                         .collect();
-                    draw_menu(&filtered_emojis, offset, selection, &user_input, false);
+                    draw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
                 KeyCode::Backspace => {
                     filtered_emojis = emojis
@@ -86,7 +88,7 @@ fn main() -> io::Result<()> {
                         .iter()
                         .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
                         .collect();
-                    draw_menu(&filtered_emojis, offset, selection, &user_input, false);
+                    draw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
                 _ => {}
             },
@@ -94,20 +96,95 @@ fn main() -> io::Result<()> {
         }
     }
 
+    let gitmoji: Vec<char> = filtered_emojis[offset + selection].chars().collect();
+    let gitmoji = gitmoji[0].to_string();
+    let headline = "? Gitmoji: ".to_string() + &gitmoji + "!";
+    cursor_to_start();
+    execute!(
+        io::stdout(),
+        SetAttribute(Attribute::Bold),
+        SetForegroundColor(Rgb {
+            r: 180,
+            g: 190,
+            b: 254,
+        }),
+        Print(headline),
+        SetAttribute(Attribute::Reset),
+    )
+    .expect("failed to print selected gitmoji");
+
+    execute!(io::stdout(), MoveDown(2)).expect("Failed to move cursor down by two lines");
+    let mut commit_message: String = String::new();
+    reload_commit_message(&commit_message, false);
+    loop {
+        match read()? {
+            Event::Key(event) => match event.code {
+                KeyCode::Char(c) => {
+                    commit_message += &c.to_string();
+                    reload_commit_message(&commit_message, false);
+                }
+
+                KeyCode::Backspace => {
+                    commit_message.pop();
+                    reload_commit_message(&commit_message, false);
+                }
+
+                KeyCode::Enter => {
+                    reload_commit_message(&commit_message, true);
+                    break;
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    let final_commit_message = gitmoji + &commit_message;
+
+    cursor_to_start();
     disable_raw_mode().expect("Failed to disable raw mode");
+    Command::new("git").args(["commit", "-m", final_commit_message.as_str()]).status().expect("Failed to run git");
+
+    println!("\n");
     execute!(io::stdout(), Show).expect("Failed to unhide cursor");
     Ok(())
 }
 
-fn redraw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String, end: bool) {
-    delete_menu(emojis);
-    draw_menu(emojis, offset, selection, user_input, end);
+fn reload_commit_message(commit_message: &String, end: bool) {
+    let text = if end { "? Commit title: " } else { "? Enter commit title: " };
+    let commit_message = commit_message.to_owned() + if end { "\n" } else { "█\n" };
+    cursor_to_start();
+    execute!(
+        io::stdout(),
+        MoveUp(1),
+        Clear(ClearType::CurrentLine),
+        SetAttribute(Attribute::Bold),
+        SetForegroundColor(Rgb {
+            r: 180,
+            g: 190,
+            b: 254,
+        }),
+        Print(text),
+        SetAttribute(Attribute::Reset),
+        SetForegroundColor(Rgb {
+            r: 186,
+            g: 194,
+            b: 222,
+        }),
+        Print(commit_message),
+        SetAttribute(Attribute::Reset),
+    )
+    .expect("Failed to reload title input");
 }
 
-fn draw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String, end: bool) {
+fn redraw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String) {
+    delete_menu(emojis);
+    draw_menu(emojis, offset, selection, user_input);
+}
+
+fn draw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String) {
     cursor_to_start();
-    let cursor = if end { "" } else { "█" };
-    let user_input: String = user_input.to_string() + cursor + "\n";
+    let user_input: String = user_input.to_string() + "█\n";
     execute!(
         io::stdout(),
         SetAttribute(Attribute::Bold),
