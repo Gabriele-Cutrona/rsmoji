@@ -14,7 +14,10 @@ fn main() -> io::Result<()> {
     let mut offset: usize = 0;
     let mut user_input: String = String::new();
 
-    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+    let filtered_emojis: Vec<&&str> = emojis
+        .iter()
+        .filter(|&emoji| emoji.contains(&user_input))
+        .collect();
     draw_menu(&filtered_emojis, offset, selection, &user_input);
 
     enable_raw_mode().expect("Failed to enable raw mode");
@@ -22,25 +25,33 @@ fn main() -> io::Result<()> {
         match read()? {
             Event::Key(event) => match event.code {
                 KeyCode::Down => {
-                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    let filtered_emojis: Vec<&&str> = emojis
+                        .iter()
+                        .filter(|&emoji| emoji.contains(&user_input))
+                        .collect();
                     let offset_ = offset as isize;
                     let selection_ = selection as isize;
                     let max_selection_length_ = MAX_SELECTION_LENGTH as isize;
-                    
+
                     if offset_ < filtered_emojis.len() as isize - max_selection_length_ {
                         offset += 1;
                     }
-                    
+
                     if selection >= return_length(&filtered_emojis) && filtered_emojis.len() != 0 {
                         selection = return_length(&filtered_emojis) - 1;
-                    } else if selection_ < return_length(&filtered_emojis) as isize - 1 && offset_ >= filtered_emojis.len() as isize - max_selection_length_ {
+                    } else if selection_ < return_length(&filtered_emojis) as isize - 1
+                        && offset_ >= filtered_emojis.len() as isize - max_selection_length_
+                    {
                         selection += 1;
                     }
 
                     redraw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
                 KeyCode::Up => {
-                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    let filtered_emojis: Vec<&&str> = emojis
+                        .iter()
+                        .filter(|&emoji| emoji.contains(&user_input))
+                        .collect();
                     if offset > 0 {
                         offset -= 1;
                     } else if selection >= 1 {
@@ -54,17 +65,29 @@ fn main() -> io::Result<()> {
                 KeyCode::Char(c) => {
                     offset = 0;
                     selection = 0;
-                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    let filtered_emojis: Vec<&&str> = emojis
+                        .iter()
+                        .filter(|&emoji| emoji.contains(&user_input))
+                        .collect();
                     delete_menu(&filtered_emojis);
                     user_input += &c.to_string();
-                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    let filtered_emojis: Vec<&&str> = emojis
+                        .iter()
+                        .filter(|&emoji| emoji.contains(&user_input))
+                        .collect();
                     draw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
                 KeyCode::Backspace => {
-                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    let filtered_emojis: Vec<&&str> = emojis
+                        .iter()
+                        .filter(|&emoji| emoji.contains(&user_input))
+                        .collect();
                     delete_menu(&filtered_emojis);
                     user_input.pop();
-                    let filtered_emojis: Vec<&&str> = emojis.iter().filter(|&emoji| emoji.contains(&user_input)).collect();
+                    let filtered_emojis: Vec<&&str> = emojis
+                        .iter()
+                        .filter(|&emoji| emoji.contains(&user_input))
+                        .collect();
                     draw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
                 _ => {}
