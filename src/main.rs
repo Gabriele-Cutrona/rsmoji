@@ -1,9 +1,8 @@
 use crossterm::cursor::{MoveToColumn, MoveUp};
 use crossterm::event::{Event, KeyCode, read};
 use crossterm::execute;
-use crossterm::style::Print;
-use crossterm::terminal::{Clear, ClearType};
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use crossterm::style::{Attribute, Color::Rgb, Print, SetAttribute, SetForegroundColor};
+use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode};
 use std::io;
 
 const MAX_SELECTION_LENGTH: usize = 6;
@@ -99,12 +98,39 @@ fn redraw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input:
 
 fn draw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String) {
     cursor_to_start();
-    let headline = "Choose a gitmoji! ".to_string() + user_input + "\n";
-    execute!(io::stdout(), Print(headline)).expect("Failed to print select text");
+    let user_input: String = user_input.to_string() + "\n";
+    execute!(
+        io::stdout(),
+        SetAttribute(Attribute::Bold),
+        SetForegroundColor(Rgb {
+            r: 180,
+            g: 190,
+            b: 254,
+        }),
+        Print("? Choose a gitmoji! ".to_string()),
+        SetAttribute(Attribute::Reset),
+        SetForegroundColor(Rgb {
+            r: 186,
+            g: 194,
+            b: 222,
+        }),
+        Print(user_input),
+        SetAttribute(Attribute::Reset),
+    )
+    .expect("Failed to print select text");
     for i in 0..MAX_SELECTION_LENGTH {
         cursor_to_start();
         if i == selection {
-            execute!(io::stdout(), Print("> ".to_string())).expect("Failed to print '> '")
+            execute!(
+                io::stdout(),
+                SetForegroundColor(Rgb {
+                    r: 180,
+                    g: 190,
+                    b: 254,
+                }),
+                Print("➜ ".to_string()),
+            )
+            .expect("Failed to print '➜ '")
         } else {
             execute!(io::stdout(), Print("  ".to_string())).expect("Failed to print '  '")
         }
@@ -112,6 +138,7 @@ fn draw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &
             execute!(
                 io::stdout(),
                 Print(emojis[i + offset]),
+                SetAttribute(Attribute::Reset),
                 Print("\n".to_string()),
             )
             .expect("Failed to print menu");
