@@ -139,14 +139,13 @@ fn main() -> io::Result<()> {
         }
     }
 
-    let final_commit_message = gitmoji + &commit_message;
+    let final_commit_message = gitmoji + " " + &commit_message;
 
     cursor_to_start();
     disable_raw_mode().expect("Failed to disable raw mode");
+    execute!(io::stdout(), Show).expect("Failed to unhide cursor");
     Command::new("git").args(["commit", "-m", final_commit_message.as_str()]).status().expect("Failed to run git");
 
-    println!("\n");
-    execute!(io::stdout(), Show).expect("Failed to unhide cursor");
     Ok(())
 }
 
