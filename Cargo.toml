@@ -6,7 +6,7 @@ license = "MIT"
 description = "Gitmoji, but oxidized!"
 readme = "README.md"
 repository = "https://github.com/Gabriele-Cutrona/rsmoji"
-keywords = ["development-tools", "command-line-utilities"]
+categories = ["development-tools", "command-line-utilities"]
 
 [dependencies]
 crossterm = "0.29.0"
