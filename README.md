@@ -16,4 +16,4 @@ cargo-install-update install-update --all
 Just run `rsmoji` without any additional arguments
 
 ### License
-This project is currently licenses under the MIT license
+This project is currently licensed under the MIT license
