@@ -2,10 +2,14 @@
 Hello there! This is a simple rust CLI tool to add emojis to commits!
 It only uses [crossterm](https://crates.io/crates/crossterm)
 
-## Installation - with `cargo`
+## Installation - using `cargo`
 First, ensure you have [rust](https://doc.rust-lang.org/stable/book/ch01-01-installation.html) installed on your system, and then run:
 ```zsh
 cargo install rsmoji
+```
+To update, you can use cargo-update, install it with `cargo install cargo-update`, and then you can run:
+```zsh
+cargo-install-update install-update --all
 ```
 
 ## Usage
