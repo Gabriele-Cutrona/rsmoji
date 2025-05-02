@@ -3,9 +3,9 @@ use crossterm::event::{Event, KeyCode, read};
 use crossterm::execute;
 use crossterm::style::{Attribute, Color::Rgb, Print, SetAttribute, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode};
-use unicode_segmentation::UnicodeSegmentation;
 use std::io;
 use std::process::Command;
+use unicode_segmentation::UnicodeSegmentation;
 
 const MAX_SELECTION_LENGTH: usize = 6;
 
@@ -17,8 +17,9 @@ fn main() -> io::Result<()> {
 
     execute!(io::stdout(), Hide).expect("Failed to hide cursor");
 
-    let mut filtered_emojis: Vec<&&str> = emojis
+    let mut filtered_emojis: Vec<&str> = emojis
         .iter()
+        .copied()
         .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
         .collect();
     draw_menu(&filtered_emojis, offset, selection, &user_input);
@@ -68,12 +69,14 @@ fn main() -> io::Result<()> {
                     selection = 0;
                     filtered_emojis = emojis
                         .iter()
+                        .copied()
                         .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
                         .collect();
                     delete_menu(&filtered_emojis);
                     user_input += &c.to_string();
                     filtered_emojis = emojis
                         .iter()
+                        .copied()
                         .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
                         .collect();
                     draw_menu(&filtered_emojis, offset, selection, &user_input);
@@ -81,12 +84,14 @@ fn main() -> io::Result<()> {
                 KeyCode::Backspace => {
                     filtered_emojis = emojis
                         .iter()
+                        .copied()
                         .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
                         .collect();
                     delete_menu(&filtered_emojis);
                     user_input.pop();
                     filtered_emojis = emojis
                         .iter()
+                        .copied()
                         .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
                         .collect();
                     draw_menu(&filtered_emojis, offset, selection, &user_input);
@@ -96,7 +101,9 @@ fn main() -> io::Result<()> {
         }
     }
 
-    let gitmoji: Vec<&str> = filtered_emojis[offset + selection].graphemes(true).collect();
+    let gitmoji: Vec<&str> = filtered_emojis[offset + selection]
+        .graphemes(true)
+        .collect();
     let gitmoji = gitmoji[0].to_string();
     let headline = "? Gitmoji: ".to_string() + &gitmoji + "!";
     cursor_to_start();
@@ -176,12 +183,12 @@ fn reload_commit_message(commit_message: &String, end: bool) {
     .expect("Failed to reload title input");
 }
 
-fn redraw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String) {
+fn redraw_menu(emojis: &Vec<&str>, offset: usize, selection: usize, user_input: &String) {
     delete_menu(emojis);
     draw_menu(emojis, offset, selection, user_input);
 }
 
-fn draw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &String) {
+fn draw_menu(emojis: &Vec<&str>, offset: usize, selection: usize, user_input: &String) {
     cursor_to_start();
     let user_input: String = user_input.to_string() + "█\n";
     execute!(
@@ -231,13 +238,13 @@ fn draw_menu(emojis: &Vec<&&str>, offset: usize, selection: usize, user_input: &
     }
 }
 
-fn delete_menu(emojis: &Vec<&&str>) {
+fn delete_menu(emojis: &Vec<&str>) {
     for _i in 0..return_length(emojis) + 1 {
         execute!(io::stdout(), MoveUp(1), Clear(ClearType::CurrentLine)).expect("Failed to clear");
     }
 }
 
-fn return_length(emojis: &Vec<&&str>) -> usize {
+fn return_length(emojis: &Vec<&str>) -> usize {
     if emojis.len() > MAX_SELECTION_LENGTH {
         MAX_SELECTION_LENGTH
     } else {
