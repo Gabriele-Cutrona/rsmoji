@@ -24,8 +24,8 @@ fn main() -> io::Result<()> {
 
     enable_raw_mode().expect("Failed to enable raw mode");
     loop {
-        match read()? {
-            Event::Key(event) => match event.code {
+        if let Event::Key(event) = read()? {
+            match event.code {
                 KeyCode::Down => {
                     let offset_ = offset as isize;
                     let selection_ = selection as isize;
@@ -35,7 +35,7 @@ fn main() -> io::Result<()> {
                         offset += 1;
                     }
 
-                    if selection >= return_length(&filtered_emojis) && filtered_emojis.len() != 0 {
+                    if selection >= return_length(&filtered_emojis) && !filtered_emojis.is_empty() {
                         selection = return_length(&filtered_emojis) - 1;
                     } else if selection_ < return_length(&filtered_emojis) as isize - 1
                         && offset_ >= filtered_emojis.len() as isize - max_selection_length_
@@ -56,7 +56,7 @@ fn main() -> io::Result<()> {
                 }
 
                 KeyCode::Enter => {
-                    if filtered_emojis.len() != 0 {
+                    if !filtered_emojis.is_empty() {
                         delete_menu(&filtered_emojis);
                         break;
                     }
@@ -91,8 +91,7 @@ fn main() -> io::Result<()> {
                     draw_menu(&filtered_emojis, offset, selection, &user_input);
                 }
                 _ => {}
-            },
-            _ => {}
+            }
         }
     }
 
@@ -117,8 +116,8 @@ fn main() -> io::Result<()> {
     let mut commit_message: String = String::new();
     reload_commit_message(&commit_message, false);
     loop {
-        match read()? {
-            Event::Key(event) => match event.code {
+        if let Event::Key(event) = read()? {
+            match event.code {
                 KeyCode::Char(c) => {
                     commit_message += &c.to_string();
                     reload_commit_message(&commit_message, false);
@@ -134,8 +133,7 @@ fn main() -> io::Result<()> {
                     break;
                 }
                 _ => {}
-            },
-            _ => {}
+            }
         }
     }
 
@@ -144,13 +142,20 @@ fn main() -> io::Result<()> {
     cursor_to_start();
     disable_raw_mode().expect("Failed to disable raw mode");
     execute!(io::stdout(), Show).expect("Failed to unhide cursor");
-    Command::new("git").args(["commit", "-m", final_commit_message.as_str()]).status().expect("Failed to run git");
+    Command::new("git")
+        .args(["commit", "-m", final_commit_message.as_str()])
+        .status()
+        .expect("Failed to run git");
 
     Ok(())
 }
 
 fn reload_commit_message(commit_message: &String, end: bool) {
-    let text = if end { "? Commit title: " } else { "? Enter commit title: " };
+    let text = if end {
+        "? Commit title: "
+    } else {
+        "? Enter commit title: "
+    };
     let commit_message = commit_message.to_owned() + if end { "\n" } else { "█\n" };
     cursor_to_start();
     execute!(
