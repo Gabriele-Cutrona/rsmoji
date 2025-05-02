@@ -71,6 +71,12 @@ fn main() -> io::Result<()> {
         };
 
         let handle_char = |c: char, state: &mut UIState| {
+            if c == 'c' && event.modifiers.contains(KeyModifiers::CONTROL) {
+                cursor_to_start();
+                disable_raw_mode().expect("Failed to disable raw mode");
+                execute!(io::stdout(), Show).expect("Failed to unhide cursor");
+                std::process::exit(0);
+            }
             state.offset = 0;
             state.selection = 0;
             delete_menu(&state.filtered_emojis);
@@ -158,6 +164,12 @@ fn main() -> io::Result<()> {
         }
 
         let mut handle_char = |c: char| {
+            if c == 'c' && event.modifiers.contains(KeyModifiers::CONTROL) {
+                cursor_to_start();
+                disable_raw_mode().expect("Failed to disable raw mode");
+                execute!(io::stdout(), Show).expect("Failed to unhide cursor");
+                std::process::exit(0);
+            }
             commit_message += &c.to_string();
             reload_commit_message(&commit_message, false);
         };
