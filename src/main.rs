@@ -1,5 +1,5 @@
 use crossterm::cursor::{Hide, MoveDown, MoveToColumn, MoveUp, Show};
-use crossterm::event::{Event, KeyCode, KeyEventKind, read};
+use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, read};
 use crossterm::execute;
 use crossterm::style::{Attribute, Color::Rgb, Print, SetAttribute, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode};
@@ -9,20 +9,34 @@ use unicode_segmentation::UnicodeSegmentation;
 
 const MAX_SELECTION_LENGTH: usize = 6;
 
+struct UIState<'a> {
+    offset: usize,
+    selection: usize,
+    user_input: String,
+    filtered_emojis: Vec<&'a str>,
+}
+
 fn main() -> io::Result<()> {
     let emojis: Vec<&'static str> = return_emojis();
-    let mut selection: usize = 2;
-    let mut offset: usize = 0;
-    let mut user_input: String = String::new();
 
     execute!(io::stdout(), Hide).expect("Failed to hide cursor");
 
-    let mut filtered_emojis: Vec<&str> = emojis
+    let mut state = UIState {
+        offset: 0,
+        selection: 2,
+        user_input: String::new(),
+        filtered_emojis: vec![""],
+    };
+    state.filtered_emojis = emojis
         .iter()
         .copied()
-        .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
+        .filter(|&emoji| {
+            emoji
+                .to_lowercase()
+                .contains(&state.user_input.to_lowercase())
+        })
         .collect();
-    draw_menu(&filtered_emojis, offset, selection, &user_input);
+    draw_menu(&state);
 
     enable_raw_mode().expect("Failed to enable raw mode");
     loop {
@@ -34,70 +48,85 @@ fn main() -> io::Result<()> {
             continue;
         }
 
-        match event.code {
-            KeyCode::Down => {
-                let offset_ = offset as isize;
-                let selection_ = selection as isize;
-                let max_selection_length_ = MAX_SELECTION_LENGTH as isize;
+        let handle_keydown = |state: &mut UIState| {
+            let offset_ = state.offset as isize;
+            let selection_ = state.selection as isize;
+            let max_selection_length_ = MAX_SELECTION_LENGTH as isize;
 
-                if offset_ < filtered_emojis.len() as isize - max_selection_length_ {
-                    offset += 1;
-                }
-
-                if selection >= return_length(&filtered_emojis) && !filtered_emojis.is_empty() {
-                    selection = return_length(&filtered_emojis) - 1;
-                } else if selection_ < return_length(&filtered_emojis) as isize - 1
-                    && offset_ >= filtered_emojis.len() as isize - max_selection_length_
-                {
-                    selection += 1;
-                }
-
-                redraw_menu(&filtered_emojis, offset, selection, &user_input);
+            if offset_ < state.filtered_emojis.len() as isize - max_selection_length_ {
+                state.offset += 1;
             }
 
+            if state.selection >= return_length(&state.filtered_emojis)
+                && !state.filtered_emojis.is_empty()
+            {
+                state.selection = return_length(&state.filtered_emojis) - 1;
+            } else if selection_ < return_length(&state.filtered_emojis) as isize - 1
+                && offset_ >= state.filtered_emojis.len() as isize - max_selection_length_
+            {
+                state.selection += 1;
+            }
+
+            redraw_menu(state);
+        };
+
+        let handle_char = |c: char, state: &mut UIState| {
+            state.offset = 0;
+            state.selection = 0;
+            delete_menu(&state.filtered_emojis);
+            state.user_input += &c.to_string();
+            state.filtered_emojis = emojis
+                .iter()
+                .copied()
+                .filter(|&emoji| {
+                    emoji
+                        .to_lowercase()
+                        .contains(&state.user_input.to_lowercase())
+                })
+                .collect();
+            draw_menu(state);
+        };
+
+        match event.code {
+            KeyCode::Down => handle_keydown(&mut state),
+
             KeyCode::Up => {
-                if offset > 0 {
-                    offset -= 1;
-                } else if selection >= 1 {
-                    selection -= 1;
+                if state.offset > 0 {
+                    state.offset -= 1;
+                } else if state.selection >= 1 {
+                    state.selection -= 1;
                 }
-                redraw_menu(&filtered_emojis, offset, selection, &user_input);
+                redraw_menu(&state);
             }
 
             KeyCode::Enter => {
-                if !filtered_emojis.is_empty() {
-                    delete_menu(&filtered_emojis);
+                if !state.filtered_emojis.is_empty() {
+                    delete_menu(&state.filtered_emojis);
                     break;
                 }
             }
 
-            KeyCode::Char(c) => {
-                offset = 0;
-                selection = 0;
-                delete_menu(&filtered_emojis);
-                user_input += &c.to_string();
-                filtered_emojis = emojis
-                    .iter()
-                    .copied()
-                    .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
-                    .collect();
-                draw_menu(&filtered_emojis, offset, selection, &user_input);
-            }
+            KeyCode::Char(c) => handle_char(c, &mut state),
+
             KeyCode::Backspace => {
-                delete_menu(&filtered_emojis);
-                user_input.pop();
-                filtered_emojis = emojis
+                delete_menu(&state.filtered_emojis);
+                state.user_input.pop();
+                state.filtered_emojis = emojis
                     .iter()
                     .copied()
-                    .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
+                    .filter(|&emoji| {
+                        emoji
+                            .to_lowercase()
+                            .contains(&state.user_input.to_lowercase())
+                    })
                     .collect();
-                draw_menu(&filtered_emojis, offset, selection, &user_input);
+                draw_menu(&state);
             }
             _ => {}
         }
     }
 
-    let gitmoji: Vec<&str> = filtered_emojis[offset + selection]
+    let gitmoji: Vec<&str> = state.filtered_emojis[state.offset + state.selection]
         .graphemes(true)
         .collect();
     let gitmoji = gitmoji[0].to_string();
@@ -120,24 +149,32 @@ fn main() -> io::Result<()> {
     let mut commit_message: String = String::new();
     reload_commit_message(&commit_message, false);
     loop {
-        if let Event::Key(event) = read()? {
-            match event.code {
-                KeyCode::Char(c) => {
-                    commit_message += &c.to_string();
-                    reload_commit_message(&commit_message, false);
-                }
+        let Event::Key(event) = read()? else {
+            continue;
+        };
 
-                KeyCode::Backspace => {
-                    commit_message.pop();
-                    reload_commit_message(&commit_message, false);
-                }
+        if event.kind != KeyEventKind::Press {
+            continue;
+        }
 
-                KeyCode::Enter => {
-                    reload_commit_message(&commit_message, true);
-                    break;
-                }
-                _ => {}
+        let mut handle_char = |c: char| {
+            commit_message += &c.to_string();
+            reload_commit_message(&commit_message, false);
+        };
+
+        match event.code {
+            KeyCode::Char(c) => handle_char(c),
+
+            KeyCode::Backspace => {
+                commit_message.pop();
+                reload_commit_message(&commit_message, false);
             }
+
+            KeyCode::Enter => {
+                reload_commit_message(&commit_message, true);
+                break;
+            }
+            _ => {}
         }
     }
 
@@ -179,14 +216,14 @@ fn reload_commit_message(commit_message: &String, end: bool) {
     .expect("Failed to reload title input");
 }
 
-fn redraw_menu(emojis: &Vec<&str>, offset: usize, selection: usize, user_input: &String) {
-    delete_menu(emojis);
-    draw_menu(emojis, offset, selection, user_input);
+fn redraw_menu(state: &UIState) {
+    delete_menu(&state.filtered_emojis);
+    draw_menu(state);
 }
 
-fn draw_menu(emojis: &Vec<&str>, offset: usize, selection: usize, user_input: &String) {
+fn draw_menu(state: &UIState) {
     cursor_to_start();
-    let user_input: String = user_input.to_string() + "█\n";
+    let user_input: String = state.user_input.to_string() + "█\n";
     execute!(
         io::stdout(),
         SetAttribute(Attribute::Bold),
@@ -208,7 +245,7 @@ fn draw_menu(emojis: &Vec<&str>, offset: usize, selection: usize, user_input: &S
     .expect("Failed to print select text");
     for i in 0..MAX_SELECTION_LENGTH {
         cursor_to_start();
-        if i == selection {
+        if i == state.selection {
             execute!(
                 io::stdout(),
                 SetForegroundColor(Rgb {
@@ -222,10 +259,10 @@ fn draw_menu(emojis: &Vec<&str>, offset: usize, selection: usize, user_input: &S
         } else {
             execute!(io::stdout(), Print("  ".to_string())).expect("Failed to print '  '")
         }
-        if i + offset < emojis.len() {
+        if i + state.offset < state.filtered_emojis.len() {
             execute!(
                 io::stdout(),
-                Print(emojis[i + offset]),
+                Print(state.filtered_emojis[i + state.offset]),
                 SetAttribute(Attribute::Reset),
                 Print("\n".to_string()),
             )
