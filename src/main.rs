@@ -1,5 +1,5 @@
 use crossterm::cursor::{Hide, MoveDown, MoveToColumn, MoveUp, Show};
-use crossterm::event::{Event, KeyCode, read};
+use crossterm::event::{Event, KeyCode, KeyEventKind, read};
 use crossterm::execute;
 use crossterm::style::{Attribute, Color::Rgb, Print, SetAttribute, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode};
@@ -26,78 +26,74 @@ fn main() -> io::Result<()> {
 
     enable_raw_mode().expect("Failed to enable raw mode");
     loop {
-        if let Event::Key(event) = read()? {
-            match event.code {
-                KeyCode::Down => {
-                    let offset_ = offset as isize;
-                    let selection_ = selection as isize;
-                    let max_selection_length_ = MAX_SELECTION_LENGTH as isize;
+        let Event::Key(event) = read()? else {
+            continue;
+        };
 
-                    if offset_ < filtered_emojis.len() as isize - max_selection_length_ {
-                        offset += 1;
-                    }
+        if event.kind != KeyEventKind::Press {
+            continue;
+        }
 
-                    if selection >= return_length(&filtered_emojis) && !filtered_emojis.is_empty() {
-                        selection = return_length(&filtered_emojis) - 1;
-                    } else if selection_ < return_length(&filtered_emojis) as isize - 1
-                        && offset_ >= filtered_emojis.len() as isize - max_selection_length_
-                    {
-                        selection += 1;
-                    }
+        match event.code {
+            KeyCode::Down => {
+                let offset_ = offset as isize;
+                let selection_ = selection as isize;
+                let max_selection_length_ = MAX_SELECTION_LENGTH as isize;
 
-                    redraw_menu(&filtered_emojis, offset, selection, &user_input);
+                if offset_ < filtered_emojis.len() as isize - max_selection_length_ {
+                    offset += 1;
                 }
 
-                KeyCode::Up => {
-                    if offset > 0 {
-                        offset -= 1;
-                    } else if selection >= 1 {
-                        selection -= 1;
-                    }
-                    redraw_menu(&filtered_emojis, offset, selection, &user_input);
+                if selection >= return_length(&filtered_emojis) && !filtered_emojis.is_empty() {
+                    selection = return_length(&filtered_emojis) - 1;
+                } else if selection_ < return_length(&filtered_emojis) as isize - 1
+                    && offset_ >= filtered_emojis.len() as isize - max_selection_length_
+                {
+                    selection += 1;
                 }
 
-                KeyCode::Enter => {
-                    if !filtered_emojis.is_empty() {
-                        delete_menu(&filtered_emojis);
-                        break;
-                    }
-                }
-
-                KeyCode::Char(c) => {
-                    offset = 0;
-                    selection = 0;
-                    filtered_emojis = emojis
-                        .iter()
-                        .copied()
-                        .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
-                        .collect();
-                    delete_menu(&filtered_emojis);
-                    user_input += &c.to_string();
-                    filtered_emojis = emojis
-                        .iter()
-                        .copied()
-                        .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
-                        .collect();
-                    draw_menu(&filtered_emojis, offset, selection, &user_input);
-                }
-                KeyCode::Backspace => {
-                    filtered_emojis = emojis
-                        .iter()
-                        .copied()
-                        .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
-                        .collect();
-                    delete_menu(&filtered_emojis);
-                    user_input.pop();
-                    filtered_emojis = emojis
-                        .iter()
-                        .copied()
-                        .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
-                        .collect();
-                    draw_menu(&filtered_emojis, offset, selection, &user_input);
-                }
-                _ => {}
+                redraw_menu(&filtered_emojis, offset, selection, &user_input);
             }
+
+            KeyCode::Up => {
+                if offset > 0 {
+                    offset -= 1;
+                } else if selection >= 1 {
+                    selection -= 1;
+                }
+                redraw_menu(&filtered_emojis, offset, selection, &user_input);
+            }
+
+            KeyCode::Enter => {
+                if !filtered_emojis.is_empty() {
+                    delete_menu(&filtered_emojis);
+                    break;
+                }
+            }
+
+            KeyCode::Char(c) => {
+                offset = 0;
+                selection = 0;
+                delete_menu(&filtered_emojis);
+                user_input += &c.to_string();
+                filtered_emojis = emojis
+                    .iter()
+                    .copied()
+                    .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
+                    .collect();
+                draw_menu(&filtered_emojis, offset, selection, &user_input);
+            }
+            KeyCode::Backspace => {
+                delete_menu(&filtered_emojis);
+                user_input.pop();
+                filtered_emojis = emojis
+                    .iter()
+                    .copied()
+                    .filter(|&emoji| emoji.to_lowercase().contains(&user_input.to_lowercase()))
+                    .collect();
+                draw_menu(&filtered_emojis, offset, selection, &user_input);
+            }
+            _ => {}
         }
     }
 
