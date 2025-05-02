@@ -1,6 +1,6 @@
 [package]
 name = "rsmoji"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 license = "MIT"
 description = "Gitmoji, but oxidized!"
@@ -10,3 +10,4 @@ categories = ["development-tools", "command-line-utilities"]
 
 [dependencies]
 crossterm = "0.29.0"
+unicode-segmentation = "1.12.0"

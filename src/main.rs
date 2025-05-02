@@ -3,6 +3,7 @@ use crossterm::event::{Event, KeyCode, read};
 use crossterm::execute;
 use crossterm::style::{Attribute, Color::Rgb, Print, SetAttribute, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode};
+use unicode_segmentation::UnicodeSegmentation;
 use std::io;
 use std::process::Command;
 
@@ -95,7 +96,7 @@ fn main() -> io::Result<()> {
         }
     }
 
-    let gitmoji: Vec<char> = filtered_emojis[offset + selection].chars().collect();
+    let gitmoji: Vec<&str> = filtered_emojis[offset + selection].graphemes(true).collect();
     let gitmoji = gitmoji[0].to_string();
     let headline = "? Gitmoji: ".to_string() + &gitmoji + "!";
     cursor_to_start();
