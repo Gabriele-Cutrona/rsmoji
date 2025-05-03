@@ -70,6 +70,15 @@ fn main() -> io::Result<()> {
             redraw_menu(state);
         };
 
+        let handle_keyup = |state: &mut UIState| {
+            if state.offset > 0 {
+                state.offset -= 1;
+            } else if state.selection >= 1 {
+                state.selection -= 1;
+            }
+            redraw_menu(&state);
+        };
+
         let handle_char = |c: char, state: &mut UIState| {
             if c == 'c' && event.modifiers.contains(KeyModifiers::CONTROL) {
                 cursor_to_start();
@@ -77,6 +86,17 @@ fn main() -> io::Result<()> {
                 execute!(io::stdout(), Show).expect("Failed to unhide cursor");
                 std::process::exit(0);
             }
+
+            if c == 'p' && event.modifiers.contains(KeyModifiers::CONTROL) {
+                handle_keyup(state);
+                return
+            }
+
+            if c == 'n' && event.modifiers.contains(KeyModifiers::CONTROL) {
+                handle_keydown(state);
+                return
+            }
+
             state.offset = 0;
             state.selection = 0;
             delete_menu(&state.filtered_emojis);
@@ -96,14 +116,7 @@ fn main() -> io::Result<()> {
         match event.code {
             KeyCode::Down => handle_keydown(&mut state),
 
-            KeyCode::Up => {
-                if state.offset > 0 {
-                    state.offset -= 1;
-                } else if state.selection >= 1 {
-                    state.selection -= 1;
-                }
-                redraw_menu(&state);
-            }
+            KeyCode::Up => handle_keyup(&mut state),
 
             KeyCode::Enter => {
                 if !state.filtered_emojis.is_empty() {
