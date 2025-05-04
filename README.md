@@ -15,5 +15,8 @@ cargo-install-update install-update --all
 ## Usage
 Just run `rsmoji` without any additional arguments
 
+### Credits
+The emoji list was taken from [gitmoji-cli](https://github.com/carloscuesta/gitmoji-cli)
+
 ### License
 This project is currently licensed under the MIT license
