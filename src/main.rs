@@ -79,6 +79,20 @@ fn main() -> io::Result<()> {
             redraw_menu(&state);
         };
 
+        let handle_left = |state: &mut UIState| {
+            if state.insert_offset < state.user_input.graphemes(true).count() {
+                state.insert_offset += 1;
+                redraw_menu(&state);
+            }
+        };
+
+        let handle_right = |state: &mut UIState| {
+            if state.insert_offset != 0 {
+                state.insert_offset -= 1;
+                redraw_menu(&state);
+            }
+        };
+
         let handle_char = |c: char, state: &mut UIState| {
             if c == 'c' && event.modifiers.contains(KeyModifiers::CONTROL) {
                 cursor_to_start();
@@ -93,6 +107,16 @@ fn main() -> io::Result<()> {
 
             if c == 'n' && event.modifiers.contains(KeyModifiers::CONTROL) {
                 handle_keydown(state);
+                return;
+            }
+
+            if c == 'b' && event.modifiers.contains(KeyModifiers::CONTROL) {
+                handle_left(state);
+                return;
+            }
+
+            if c == 'f' && event.modifiers.contains(KeyModifiers::CONTROL) {
+                handle_right(state);
                 return;
             }
 
@@ -123,19 +147,9 @@ fn main() -> io::Result<()> {
 
             KeyCode::Up => handle_keyup(&mut state),
 
-            KeyCode::Left => {
-                if state.insert_offset < state.user_input.graphemes(true).count() {
-                    state.insert_offset += 1;
-                    redraw_menu(&state);
-                }
-            }
+            KeyCode::Left => handle_left(&mut state),
 
-            KeyCode::Right => {
-                if state.insert_offset != 0 {
-                    state.insert_offset -= 1;
-                    redraw_menu(&state);
-                }
-            }
+            KeyCode::Right => handle_right(&mut state),
 
             KeyCode::Enter => {
                 if !state.filtered_emojis.is_empty() {
@@ -206,6 +220,23 @@ fn main() -> io::Result<()> {
                 disable_raw_mode().expect("Failed to disable raw mode");
                 std::process::exit(0);
             }
+
+            if c == 'b' && event.modifiers.contains(KeyModifiers::CONTROL) {
+                if state.insert_offset < commit_message.graphemes(true).count() {
+                    state.insert_offset += 1;
+                    reload_commit_message(&commit_message, state.insert_offset, false);
+                }
+                return;
+            }
+
+            if c == 'f' && event.modifiers.contains(KeyModifiers::CONTROL) {
+                if state.insert_offset != 0 {
+                    state.insert_offset -= 1;
+                    reload_commit_message(&commit_message, state.insert_offset, false);
+                }
+                return;
+            }
+
             let mut graphemes: Vec<&str> = commit_message.graphemes(true).collect();
             let cs = c.to_string();
             graphemes.insert(
