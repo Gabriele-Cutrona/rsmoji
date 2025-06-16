@@ -192,9 +192,9 @@ fn main() -> io::Result<()> {
         io::stdout(),
         SetAttribute(Attribute::Bold),
         SetForegroundColor(Rgb {
-            r: 180,
-            g: 190,
-            b: 254,
+            r: 203,
+            g: 166,
+            b: 247,
         }),
         Print(headline),
         SetAttribute(Attribute::Reset),
@@ -305,9 +305,9 @@ fn reload_commit_message(commit_message: &String, insert_offset: usize, end: boo
         Clear(ClearType::CurrentLine),
         SetAttribute(Attribute::Bold),
         SetForegroundColor(Rgb {
-            r: 180,
-            g: 190,
-            b: 254,
+            r: 203,
+            g: 166,
+            b: 247,
         }),
         Print(text),
         SetAttribute(Attribute::Reset),
@@ -336,9 +336,9 @@ fn draw_menu(state: &UIState) {
         io::stdout(),
         SetAttribute(Attribute::Bold),
         SetForegroundColor(Rgb {
-            r: 180,
-            g: 190,
-            b: 254,
+            r: 203,
+            g: 166,
+            b: 247,
         }),
         Print(message),
         SetAttribute(Attribute::Reset),
@@ -357,9 +357,9 @@ fn draw_menu(state: &UIState) {
             execute!(
                 io::stdout(),
                 SetForegroundColor(Rgb {
-                    r: 180,
-                    g: 190,
-                    b: 254,
+                    r: 203,
+                    g: 166,
+                    b: 247,
                 }),
                 Print("➜ ".to_string()),
             )
