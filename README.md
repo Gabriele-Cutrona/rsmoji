@@ -14,7 +14,10 @@ cargo-install-update install-update --all
 ## Usage
 Just run `rsmoji` without any additional arguments
 
+You can use emacs keybindings for moving the cursor while typing (C-b, C-f, C-p, C-n)
+
 ### Credits
+The colors are [catppuccin-mocha](https://catppuccin.com)
 The emoji list was taken from [gitmoji-cli](https://github.com/carloscuesta/gitmoji-cli)
 
 ### License
