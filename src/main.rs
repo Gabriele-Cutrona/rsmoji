@@ -1,4 +1,4 @@
-use crossterm::cursor::{Hide, MoveDown, MoveToColumn, MoveUp, Show};
+use crossterm::cursor::{self, MoveDown, MoveToColumn, MoveUp};
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, read};
 use crossterm::execute;
 use crossterm::style::{Attribute, Color::Rgb, Print, SetAttribute, SetForegroundColor};
@@ -14,18 +14,18 @@ struct UIState<'a> {
     selection: usize,
     user_input: String,
     filtered_emojis: Vec<&'a str>,
+    insert_offset: usize,
 }
 
 fn main() -> io::Result<()> {
     let emojis: Vec<&'static str> = return_emojis();
-
-    execute!(io::stdout(), Hide).expect("Failed to hide cursor");
 
     let mut state = UIState {
         offset: 0,
         selection: 2,
         user_input: String::new(),
         filtered_emojis: vec![""],
+        insert_offset: 0,
     };
     state.filtered_emojis = emojis
         .iter()
@@ -83,24 +83,29 @@ fn main() -> io::Result<()> {
             if c == 'c' && event.modifiers.contains(KeyModifiers::CONTROL) {
                 cursor_to_start();
                 disable_raw_mode().expect("Failed to disable raw mode");
-                execute!(io::stdout(), Show).expect("Failed to unhide cursor");
                 std::process::exit(0);
             }
 
             if c == 'p' && event.modifiers.contains(KeyModifiers::CONTROL) {
                 handle_keyup(state);
-                return
+                return;
             }
 
             if c == 'n' && event.modifiers.contains(KeyModifiers::CONTROL) {
                 handle_keydown(state);
-                return
+                return;
             }
 
             state.offset = 0;
             state.selection = 0;
             delete_menu(&state.filtered_emojis);
-            state.user_input += &c.to_string();
+            let mut graphemes: Vec<&str> = state.user_input.graphemes(true).collect();
+            let cs = c.to_string();
+            graphemes.insert(
+                state.user_input.graphemes(true).count() - state.insert_offset,
+                &cs,
+            );
+            state.user_input = graphemes.concat();
             state.filtered_emojis = emojis
                 .iter()
                 .copied()
@@ -118,6 +123,20 @@ fn main() -> io::Result<()> {
 
             KeyCode::Up => handle_keyup(&mut state),
 
+            KeyCode::Left => {
+                if state.insert_offset < state.user_input.graphemes(true).count() {
+                    state.insert_offset += 1;
+                    redraw_menu(&state);
+                }
+            }
+
+            KeyCode::Right => {
+                if state.insert_offset != 0 {
+                    state.insert_offset -= 1;
+                    redraw_menu(&state);
+                }
+            }
+
             KeyCode::Enter => {
                 if !state.filtered_emojis.is_empty() {
                     delete_menu(&state.filtered_emojis);
@@ -129,7 +148,11 @@ fn main() -> io::Result<()> {
 
             KeyCode::Backspace => {
                 delete_menu(&state.filtered_emojis);
-                state.user_input.pop();
+                let mut graphemes: Vec<&str> = state.user_input.graphemes(true).collect();
+                if !state.user_input.is_empty() && graphemes.len() > state.insert_offset {
+                    graphemes.remove(graphemes.len() - state.insert_offset - 1);
+                    state.user_input = graphemes.concat();
+                }
                 state.filtered_emojis = emojis
                     .iter()
                     .copied()
@@ -164,9 +187,10 @@ fn main() -> io::Result<()> {
     )
     .expect("failed to print selected gitmoji");
 
-    execute!(io::stdout(), MoveDown(2)).expect("Failed to move cursor down by two lines");
+    execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down by one line");
     let mut commit_message: String = String::new();
-    reload_commit_message(&commit_message, false);
+    reload_commit_message(&commit_message, state.insert_offset, false);
+    state.insert_offset = 0;
     loop {
         let Event::Key(event) = read()? else {
             continue;
@@ -180,23 +204,46 @@ fn main() -> io::Result<()> {
             if c == 'c' && event.modifiers.contains(KeyModifiers::CONTROL) {
                 cursor_to_start();
                 disable_raw_mode().expect("Failed to disable raw mode");
-                execute!(io::stdout(), Show).expect("Failed to unhide cursor");
                 std::process::exit(0);
             }
-            commit_message += &c.to_string();
-            reload_commit_message(&commit_message, false);
+            let mut graphemes: Vec<&str> = commit_message.graphemes(true).collect();
+            let cs = c.to_string();
+            graphemes.insert(
+                commit_message.graphemes(true).count() - state.insert_offset,
+                &cs,
+            );
+            commit_message = graphemes.concat();
+            reload_commit_message(&commit_message, state.insert_offset, false);
         };
 
         match event.code {
             KeyCode::Char(c) => handle_char(c),
 
             KeyCode::Backspace => {
-                commit_message.pop();
-                reload_commit_message(&commit_message, false);
+                let mut graphemes: Vec<&str> = commit_message.graphemes(true).collect();
+                if !commit_message.is_empty() && graphemes.len() > state.insert_offset {
+                    graphemes.remove(graphemes.len() - state.insert_offset - 1);
+                    commit_message = graphemes.concat();
+                }
+                reload_commit_message(&commit_message, state.insert_offset, false);
+            }
+
+            KeyCode::Left => {
+                if state.insert_offset < commit_message.graphemes(true).count() {
+                    state.insert_offset += 1;
+                    reload_commit_message(&commit_message, state.insert_offset, false);
+                }
+            }
+
+            KeyCode::Right => {
+                if state.insert_offset != 0 {
+                    state.insert_offset -= 1;
+                    reload_commit_message(&commit_message, state.insert_offset, false);
+                }
             }
 
             KeyCode::Enter => {
-                reload_commit_message(&commit_message, true);
+                reload_commit_message(&commit_message, state.insert_offset, true);
                 break;
             }
             _ => {}
@@ -205,9 +252,9 @@ fn main() -> io::Result<()> {
 
     let final_commit_message = gitmoji + " " + &commit_message;
 
+    execute!(io::stdout(), MoveDown(1)).expect("failed to move cursor down by one line");
     cursor_to_start();
     disable_raw_mode().expect("Failed to disable raw mode");
-    execute!(io::stdout(), Show).expect("Failed to unhide cursor");
     Command::new("git")
         .args(["commit", "-m", final_commit_message.as_str()])
         .status()
@@ -216,17 +263,14 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn reload_commit_message(commit_message: &String, end: bool) {
-    let text = if end {
-        "? Commit title: "
-    } else {
-        "? Enter commit title: "
-    };
-    let commit_message = commit_message.to_owned() + if end { "\n" } else { "█\n" };
+fn reload_commit_message(commit_message: &String, insert_offset: usize, end: bool) {
+    let message = "? Enter commit title: ";
+
+    let text = if end { "? Commit title: " } else { message };
+    let commit_message = commit_message.to_owned() + "\n";
     cursor_to_start();
     execute!(
         io::stdout(),
-        MoveUp(1),
         Clear(ClearType::CurrentLine),
         SetAttribute(Attribute::Bold),
         SetForegroundColor(Rgb {
@@ -236,9 +280,15 @@ fn reload_commit_message(commit_message: &String, end: bool) {
         }),
         Print(text),
         SetAttribute(Attribute::Reset),
-        Print(commit_message),
+        Print(&commit_message),
+        MoveUp(1)
     )
     .expect("Failed to reload title input");
+
+    let cols: u16 =
+        message.len() as u16 + commit_message.graphemes(true).count() as u16 - insert_offset as u16;
+    execute!(io::stdout(), cursor::MoveToColumn(cols - 1),)
+        .expect("Failed to move cursor to writing position");
 }
 
 fn redraw_menu(state: &UIState) {
@@ -248,7 +298,9 @@ fn redraw_menu(state: &UIState) {
 
 fn draw_menu(state: &UIState) {
     cursor_to_start();
-    let user_input: String = state.user_input.to_string() + "█\n";
+    let user_input: String = state.user_input.clone();
+    let user_input: String = user_input + "\n";
+    let message = "? Choose a gitmoji! ";
     execute!(
         io::stdout(),
         SetAttribute(Attribute::Bold),
@@ -257,7 +309,7 @@ fn draw_menu(state: &UIState) {
             g: 190,
             b: 254,
         }),
-        Print("? Choose a gitmoji! ".to_string()),
+        Print(message),
         SetAttribute(Attribute::Reset),
         SetForegroundColor(Rgb {
             r: 186,
@@ -294,9 +346,22 @@ fn draw_menu(state: &UIState) {
             .expect("Failed to print menu");
         }
     }
+    let cols: u16 = message.len() as u16 + state.user_input.graphemes(true).count() as u16
+        - state.insert_offset as u16;
+    execute!(
+        io::stdout(),
+        cursor::MoveToColumn(cols),
+        cursor::MoveUp(state.filtered_emojis.len().clamp(0, MAX_SELECTION_LENGTH) as u16 + 1),
+    )
+    .expect("Failed to move cursor to writing position");
 }
 
 fn delete_menu(emojis: &Vec<&str>) {
+    execute!(
+        io::stdout(),
+        cursor::MoveDown(emojis.len().clamp(0, MAX_SELECTION_LENGTH) as u16 + 1),
+    )
+    .expect("Failed to move cursor down");
     for _i in 0..return_length(emojis) + 1 {
         execute!(io::stdout(), MoveUp(1), Clear(ClearType::CurrentLine)).expect("Failed to clear");
     }
