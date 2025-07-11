@@ -482,7 +482,7 @@ fn return_emojis() -> Vec<&'static str> {
         "👔 - Add or update business logic",
         "🩺 - Add or update healthcheck",
         "🧱 - Infrastructure related changes",
-        "🧑‍💻 Improve developer experience",
+        "🧑‍💻 - Improve developer experience",
         "💸 - Add sponsorships or money related infrastructure",
         "🧵 - Add or update code related to multithreading or concurrency",
         "🦺 - Add or update code related to validation",
