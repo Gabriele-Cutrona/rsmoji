@@ -57,8 +57,10 @@ fn main() -> io::Result<()> {
             KeyCode::Char(c) => handle_char(c, &mut state, event, &emojis),
             KeyCode::Backspace => handle_backspace(&mut state, &emojis),
             KeyCode::Enter => {
-                handle_enter(&state);
-                break;
+                let result = handle_enter(&state);
+                if result {
+                    break;
+                }
             }
 
             _ => {}

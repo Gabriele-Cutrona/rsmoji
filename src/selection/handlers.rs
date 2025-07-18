@@ -6,7 +6,7 @@ use crossterm::terminal::disable_raw_mode;
 use unicode_segmentation::UnicodeSegmentation;
 
 pub fn handle_keydown(state: &mut UIState) {
-    let max_offset = state.filtered_emojis.len() - MAX_LIST_LENGTH;
+    let max_offset = state.filtered_emojis.len().saturating_sub(MAX_LIST_LENGTH);
     let visible_emojis = state.emo_clamp();
     let emojis_not_empty = !state.filtered_emojis.is_empty();
 
@@ -16,7 +16,7 @@ pub fn handle_keydown(state: &mut UIState) {
 
     if state.selection >= visible_emojis && emojis_not_empty {
         state.selection = visible_emojis - 1;
-    } else if state.selection < visible_emojis - 1 && state.offset >= max_offset {
+    } else if state.selection < visible_emojis.saturating_sub(1) && state.offset >= max_offset {
         state.selection += 1;
     }
 
@@ -60,6 +60,7 @@ pub fn handle_char(c: char, state: &mut UIState, event: KeyEvent, emojis: &Vec<&
             'f' => handle_right(state),
             _ => {}
         }
+        return;
     }
 
     state.offset = 0;
@@ -76,10 +77,12 @@ pub fn handle_char(c: char, state: &mut UIState, event: KeyEvent, emojis: &Vec<&
     draw_menu(state);
 }
 
-pub fn handle_enter(state: &UIState) {
+pub fn handle_enter(state: &UIState) -> bool {
     if !state.filtered_emojis.is_empty() {
         delete_menu(&state);
+        return true;
     }
+    return false;
 }
 
 pub fn handle_backspace(state: &mut UIState, emojis: &Vec<&'static str>) {

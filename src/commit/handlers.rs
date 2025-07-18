@@ -14,7 +14,7 @@ pub fn handle_char_commit(
 ) {
     if event.modifiers.contains(KeyModifiers::CONTROL) {
         match c {
-            'a' => {
+            'c' => {
                 cursor_to_start();
                 disable_raw_mode().expect("Failed to disable raw mode");
                 std::process::exit(0);
@@ -33,6 +33,7 @@ pub fn handle_char_commit(
             }
             _ => {}
         }
+        return;
     }
 
     let mut graphemes: Vec<&str> = commit_message.graphemes(true).collect();
