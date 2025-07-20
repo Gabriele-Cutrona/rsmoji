@@ -16,9 +16,11 @@ Just run `rsmoji` without any additional arguments
 
 You can use emacs keybindings for moving the cursor while typing (C-b, C-f, C-p, C-n)
 
+### Todo
+- [ ] Support commit description (not only title)
+- [ ] Support signed tags message
+
 ### Credits
 The colors are [catppuccin-mocha](https://catppuccin.com)
 The emoji list was taken from [gitmoji-cli](https://github.com/carloscuesta/gitmoji-cli)
-
-### License
 This project is currently licensed under the MIT license
