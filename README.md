@@ -28,9 +28,9 @@ Just run `rsmoji` without any additional arguments (obviously you need `git`)
 If it's not found, you have to add $HOME/.cargo/bin to your $PATH
 ```sh
 # bash
-echo "EXPORT PATH=$PATH:$HOME/.cargo/bin" > ~/.bashrc
+echo 'export PATH="$PATH:$HOME/.cargo/bin"' >> ~/.bashrc
 # zsh
-echo "EXPORT PATH=$PATH:$HOME/.cargo/bin" > ~/.zshrc
+echo 'export PATH="$PATH:$HOME/.cargo/bin"' >> ~/.zshrc
 ```
 
 You can use emacs keybindings to move the cursor while typing (Ctrl b, Ctrl f, Ctrl p, Ctrl n)
