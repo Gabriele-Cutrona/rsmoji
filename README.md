@@ -3,6 +3,11 @@ Hello there! ^w^
 This is a simple rust CLI tool to add **emojis** to commits!
 It uses [crossterm](https://crates.io/crates/crossterm) and [unicode-segmentation](https://crates.io/crates/unicode-segmentation)
 
+<div>
+	<img width="100" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg" />
+	<img width="100" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg" />
+</div>
+
 ## ✨ Features
 - 😃 It adds emojis to git commits
 - 🚧 The end for now :( (see roadmap for details)
@@ -19,7 +24,7 @@ cargo-install-update install-update rsmoji
 ```
 
 ## Usage
-Just run `rsmoji` without any additional arguments
+Just run `rsmoji` without any additional arguments (obviously you need `git`)
 If it's not found, you have to add $HOME/.cargo/bin to your $PATH
 ```sh
 # bash
