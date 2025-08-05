@@ -1,10 +1,11 @@
 # 💖 `rsmoji` 🦀
 Hello there! ^w^
+
 This is a simple rust CLI tool to add **emojis** to commits!
 It uses [crossterm](https://crates.io/crates/crossterm) and [unicode-segmentation](https://crates.io/crates/unicode-segmentation)
 
 <div>
-	<img width="100" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg" />
+	<img width="100" height="100" src="https://rustacean.net/assets/cuddlyferris.svg" />
 	<img width="100" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg" />
 </div>
 
@@ -42,5 +43,3 @@ You can use emacs keybindings to move the cursor while typing (Ctrl b, Ctrl f, C
 
 ### Credits
 The default colors are [catppuccin-mocha](https://catppuccin.com)
-The emoji list was taken from [gitmoji-cli](https://github.com/carloscuesta/gitmoji-cli)
-This project is currently licensed under the MIT license, see `LICENSE` for the license text
