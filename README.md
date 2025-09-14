@@ -26,7 +26,7 @@ cargo-install-update install-update rsmoji
 
 ## Usage
 Just run `rsmoji` without any additional arguments (obviously you need `git`)
-If it's not found, you have to add $HOME/.cargo/bin to your $PATH
+If it's not found, you have to add `$HOME/.cargo/bin` to your `$PATH`
 ```sh
 # bash
 echo 'export PATH="$PATH:$HOME/.cargo/bin"' >> ~/.bashrc
