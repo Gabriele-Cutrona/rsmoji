@@ -19,20 +19,21 @@ First, ensure you have [rust](https://doc.rust-lang.org/stable/book/ch01-01-inst
 cargo install rsmoji
 ```
 
-To update, you can use cargo-update, install it with `cargo install cargo-update`, and then you can run:
-```zsh
-cargo-install-update install-update rsmoji
-```
-
-## Usage
-Just run `rsmoji` without any additional arguments (obviously you need `git`)
-If it's not found, you have to add `$HOME/.cargo/bin` to your `$PATH`
+You also have to add `$HOME/.cargo/bin` to your `$PATH`
 ```sh
 # bash
 echo 'export PATH="$PATH:$HOME/.cargo/bin"' >> ~/.bashrc
 # zsh
 echo 'export PATH="$PATH:$HOME/.cargo/bin"' >> ~/.zshrc
 ```
+
+To update, you can use `cargo-update`, install it with `cargo install cargo-update`, and then you can run:
+```zsh
+cargo-install-update install-update rsmoji
+```
+
+## Usage
+Just run `rsmoji` without any additional arguments (obviously you need `git`)
 
 You can use emacs keybindings to move the cursor while typing (Ctrl b, Ctrl f, Ctrl p, Ctrl n)
 
