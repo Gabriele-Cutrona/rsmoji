@@ -40,6 +40,7 @@ You can use emacs keybindings to move the cursor while typing (Ctrl b, Ctrl f, C
 ### Roadmap
 - [ ] Support commit description (not only title)
 - [ ] Support signed tags message
+- [ ] Support merge messages
 - [ ] Custom toml configuration (colors...)
 
 ### Credits
