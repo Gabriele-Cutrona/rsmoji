@@ -16,6 +16,8 @@ use std::io;
 use std::process::Command;
 use unicode_segmentation::UnicodeSegmentation;
 
+use clap::{arg, command};
+
 use crate::commit::handlers::{
 	handle_backspace_commit, handle_char_commit, handle_left_commit, handle_right_commit,
 };
@@ -27,6 +29,15 @@ use crate::selection::handlers::{
 use crate::ui_state::instantiate_state;
 
 fn main() -> io::Result<()> {
+	let matches = command!()
+		.about(
+			r#"✨ Gitmojis, now oxidized! 🦀
+
+When run without arguments it performs a git commit (interactive)"#,
+		)
+		.arg(arg!(-S --sign "enable signing for this specific commit"))
+		.get_matches();
+
 	let emojis: Vec<&'static str> = return_emojis();
 
 	let mut state = instantiate_state().expect("failed to instantiate state");
@@ -107,8 +118,19 @@ fn main() -> io::Result<()> {
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down by one line");
 	cursor_to_start();
 	disable_raw_mode().expect("Failed to disable raw mode");
+
+	let mut git_args = Vec::new();
+
+	git_args.push("commit");
+	git_args.push("-m");
+	git_args.push(final_commit_message.as_str());
+
+	if matches.get_flag("sign") {
+		git_args.push("-S")
+	}
+
 	Command::new("git")
-		.args(["commit", "-m", final_commit_message.as_str()])
+		.args(git_args)
 		.status()
 		.expect("Failed to run git");
 

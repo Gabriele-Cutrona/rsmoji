@@ -13,6 +13,7 @@ It uses [crossterm](https://crates.io/crates/crossterm) and [unicode-segmentatio
 ## ✨ Features
 
 - 😃 It adds emojis to git commits
+- 🖊️ You can tell it to manually sign a commit (`-S` or `--sign` flag)
 - 🚧 The end for now :( (see roadmap for details)
 
 ## Installation - using `cargo` (crates.io)
@@ -46,6 +47,7 @@ You can use emacs keybindings to move the cursor while typing (Ctrl b, Ctrl f, C
 
 ### Roadmap
 
+- [x] Manually sign commits (`-S`)
 - [ ] Support commit description (not only title)
 - [ ] Support signed tags message
 - [ ] Support merge messages
