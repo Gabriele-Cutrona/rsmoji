@@ -18,6 +18,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use clap::{arg, command};
 
+use crate::commit::CommitTextType::{Description, Title};
 use crate::commit::handlers::{
 	handle_backspace_commit, handle_char_commit, handle_left_commit, handle_right_commit,
 };
@@ -32,7 +33,6 @@ fn main() -> io::Result<()> {
 	let matches = command!()
 		.about(
 			r#"✨ Gitmojis, now oxidized! 🦀
-
 When run without arguments it performs a git commit (interactive)"#,
 		)
 		.arg(arg!(-S --sign "enable signing for this specific commit"))
@@ -89,7 +89,7 @@ When run without arguments it performs a git commit (interactive)"#,
 
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down by one line");
 	let mut commit_message: String = String::new();
-	reload_commit_message(&commit_message, state.insert_offset, false);
+	reload_commit_message(&commit_message, state.insert_offset, false, Title);
 	state.insert_offset = 0;
 	loop {
 		let Event::Key(event) = read()? else {
@@ -101,15 +101,77 @@ When run without arguments it performs a git commit (interactive)"#,
 		}
 
 		match event.code {
-			KeyCode::Char(c) => handle_char_commit(c, event, &mut state, &mut commit_message),
-			KeyCode::Backspace => handle_backspace_commit(&mut state, &mut commit_message),
-			KeyCode::Left => handle_left_commit(&mut state, &commit_message),
-			KeyCode::Right => handle_right_commit(&mut state, &commit_message),
+			KeyCode::Char(c) => {
+				handle_char_commit(c, event, &mut state, &mut commit_message, Title)
+			}
+			KeyCode::Backspace => handle_backspace_commit(&mut state, &mut commit_message, Title),
+			KeyCode::Left => handle_left_commit(&mut state, &commit_message, Title),
+			KeyCode::Right => handle_right_commit(&mut state, &commit_message, Title),
 			KeyCode::Enter => {
-				reload_commit_message(&commit_message, state.insert_offset, true);
+				reload_commit_message(&commit_message, state.insert_offset, true, Title);
 				break;
 			}
 			_ => {}
+		}
+	}
+
+	let mut commit_descriptions: Vec<String> = vec![];
+
+	let mut line_count: usize = 0;
+	'outer: loop {
+		line_count += 1;
+		let mut commit_description: String = String::new();
+		state.insert_offset = 0;
+		execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
+		reload_commit_message(
+			&commit_description,
+			state.insert_offset,
+			false,
+			Description { line_count },
+		);
+		loop {
+			let Event::Key(event) = read()? else {
+				continue;
+			};
+
+			if event.kind != KeyEventKind::Press {
+				continue;
+			}
+
+			match event.code {
+				KeyCode::Char(c) => handle_char_commit(
+					c,
+					event,
+					&mut state,
+					&mut commit_description,
+					Description { line_count },
+				),
+				KeyCode::Backspace => handle_backspace_commit(
+					&mut state,
+					&mut commit_description,
+					Description { line_count },
+				),
+				KeyCode::Left => {
+					handle_left_commit(&mut state, &commit_description, Description { line_count })
+				}
+				KeyCode::Right => {
+					handle_right_commit(&mut state, &commit_description, Description { line_count })
+				}
+				KeyCode::Enter => {
+					if commit_description.is_empty() {
+						break 'outer;
+					}
+					reload_commit_message(
+						&commit_description,
+						state.insert_offset,
+						true,
+						Description { line_count },
+					);
+					commit_descriptions.push(commit_description);
+					break;
+				}
+				_ => {}
+			}
 		}
 	}
 
@@ -127,6 +189,11 @@ When run without arguments it performs a git commit (interactive)"#,
 
 	if matches.get_flag("sign") {
 		git_args.push("-S")
+	}
+
+	for descs in &commit_descriptions {
+		git_args.push("-m");
+		git_args.push(descs);
 	}
 
 	Command::new("git")

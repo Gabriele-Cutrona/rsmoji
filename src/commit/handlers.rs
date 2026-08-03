@@ -4,13 +4,18 @@ use crossterm::{
 };
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{commit::reload_commit_message, globals::cursor_to_start, ui_state::UIState};
+use crate::{
+	commit::{CommitTextType, reload_commit_message},
+	globals::cursor_to_start,
+	ui_state::UIState,
+};
 
 pub fn handle_char_commit(
 	c: char,
 	event: KeyEvent,
 	state: &mut UIState,
 	commit_message: &mut String,
+	text_type: CommitTextType,
 ) {
 	if event.modifiers.contains(KeyModifiers::CONTROL) {
 		match c {
@@ -22,13 +27,13 @@ pub fn handle_char_commit(
 			'b' => {
 				if state.insert_offset < commit_message.graphemes(true).count() {
 					state.insert_offset += 1;
-					reload_commit_message(commit_message, state.insert_offset, false);
+					reload_commit_message(commit_message, state.insert_offset, false, text_type);
 				}
 			}
 			'f' => {
 				if state.insert_offset != 0 {
 					state.insert_offset -= 1;
-					reload_commit_message(commit_message, state.insert_offset, false);
+					reload_commit_message(commit_message, state.insert_offset, false, text_type);
 				}
 			}
 			_ => {}
@@ -43,10 +48,14 @@ pub fn handle_char_commit(
 		&cs,
 	);
 	*commit_message = graphemes.concat();
-	reload_commit_message(commit_message, state.insert_offset, false);
+	reload_commit_message(commit_message, state.insert_offset, false, text_type);
 }
 
-pub fn handle_backspace_commit(state: &mut UIState, commit_message: &mut String) {
+pub fn handle_backspace_commit(
+	state: &mut UIState,
+	commit_message: &mut String,
+	text_type: CommitTextType,
+) {
 	let mut graphemes: Vec<&str> = commit_message.graphemes(true).collect();
 	if !commit_message.is_empty() && graphemes.len() > state.insert_offset {
 		graphemes.remove(graphemes.len() - state.insert_offset - 1);
@@ -55,19 +64,23 @@ pub fn handle_backspace_commit(state: &mut UIState, commit_message: &mut String)
 			.parse()
 			.expect("Failed to parse commit message");
 	}
-	reload_commit_message(&commit_message, state.insert_offset, false);
+	reload_commit_message(&commit_message, state.insert_offset, false, text_type);
 }
 
-pub fn handle_left_commit(state: &mut UIState, commit_message: &String) {
+pub fn handle_left_commit(state: &mut UIState, commit_message: &String, text_type: CommitTextType) {
 	if state.insert_offset < commit_message.graphemes(true).count() {
 		state.insert_offset += 1;
-		reload_commit_message(&commit_message, state.insert_offset, false);
+		reload_commit_message(&commit_message, state.insert_offset, false, text_type);
 	}
 }
 
-pub fn handle_right_commit(state: &mut UIState, commit_message: &String) {
+pub fn handle_right_commit(
+	state: &mut UIState,
+	commit_message: &String,
+	text_type: CommitTextType,
+) {
 	if state.insert_offset != 0 {
 		state.insert_offset -= 1;
-		reload_commit_message(&commit_message, state.insert_offset, false);
+		reload_commit_message(&commit_message, state.insert_offset, false, text_type);
 	}
 }

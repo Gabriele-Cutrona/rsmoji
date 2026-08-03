@@ -48,7 +48,9 @@ You can use emacs keybindings to move the cursor while typing (Ctrl b, Ctrl f, C
 ### Roadmap
 
 - [x] Manually sign commits (`-S`)
-- [ ] Support commit description (not only title)
+- [x] Support commit description (not only title)
+    - [ ] disable/enable with flag
+    - [ ] go back up to a previous line to edit
 - [ ] Support signed tags message
 - [ ] Support merge messages
 - [ ] Themes (built in and custom)

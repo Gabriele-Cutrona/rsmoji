@@ -8,10 +8,31 @@ use crossterm::terminal::{Clear, ClearType};
 use std::io;
 use unicode_segmentation::UnicodeSegmentation;
 
-pub fn reload_commit_message(commit_message: &String, insert_offset: usize, end: bool) {
-	let message = "? Enter commit title: ";
+pub enum CommitTextType {
+	Description { line_count: usize },
+	Title,
+}
 
-	let text = if end { "? Commit title: " } else { message };
+pub fn reload_commit_message(
+	commit_message: &String,
+	insert_offset: usize,
+	end: bool,
+	text_type: CommitTextType,
+) {
+	let type_text = match text_type {
+		CommitTextType::Description { line_count } => {
+			format!("(line number {line_count}) description (enter empty to confirm)")
+		}
+		CommitTextType::Title => "title".to_string(),
+	};
+
+	let message = format!("? Enter commit {type_text}: ");
+
+	let text = if end {
+		format!("? Commit {type_text}: ")
+	} else {
+		message.clone()
+	};
 	let commit_message = commit_message.to_owned() + "\n";
 	cursor_to_start();
 	execute!(
