@@ -57,7 +57,12 @@ You can use emacs keybindings to move the cursor while typing (Ctrl b, Ctrl f, C
 - [ ] Themes (built in and custom)
 - [ ] API to update emoji list dynamically (optional)
 
+### License
+
+Licensed MIT OR Apache-2.0 (./LICENSE-MIT and ./LICENSE-APACHE respectively)
+
 ### Credits
+
 
 The default colors are [catppuccin-mocha](https://catppuccin.com)
 
