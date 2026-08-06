@@ -27,7 +27,7 @@ use crate::selection::handlers::{
 	handle_backspace, handle_char, handle_enter, handle_keydown, handle_keyup, handle_left,
 	handle_right,
 };
-use crate::ui_state::instantiate_state;
+use crate::ui_state::UIState;
 
 fn main() -> io::Result<()> {
 	let matches = command!()
@@ -40,7 +40,13 @@ When run without arguments it performs a git commit (interactive)"#,
 
 	let emojis: Vec<&'static str> = return_emojis();
 
-	let mut state = instantiate_state().expect("failed to instantiate state");
+	let mut state = UIState {
+		offset: 0,
+		selection: 2,
+		user_input: String::new(),
+		filtered_emojis: vec![""],
+		insert_offset: 0,
+	};
 	state.filter_emojis(&emojis);
 	draw_menu(&state);
 
@@ -181,25 +187,15 @@ When run without arguments it performs a git commit (interactive)"#,
 	cursor_to_start();
 	disable_raw_mode().expect("Failed to disable raw mode");
 
-	let mut git_args = Vec::new();
-
-	git_args.push("commit");
-	git_args.push("-m");
-	git_args.push(final_commit_message.as_str());
-
-	if matches.get_flag("sign") {
-		git_args.push("-S")
-	}
-
-	for descs in &commit_descriptions {
-		git_args.push("-m");
-		git_args.push(descs);
-	}
-
+	let git_args = ["commit", "-m", final_commit_message.as_str()]
+		.into_iter()
+		.chain(matches.get_flag("sign").then_some("-S"))
+		.chain(commit_descriptions.iter().flat_map(|desc| vec!["-m", desc]));
+    
 	Command::new("git")
 		.args(git_args)
 		.status()
 		.expect("Failed to run git");
 
-	return Ok(());
+	Ok(())
 }

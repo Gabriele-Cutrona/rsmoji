@@ -1,5 +1,3 @@
-use std::sync::Mutex;
-
 use crate::globals::MAX_LIST_LENGTH;
 
 pub struct UIState<'a> {
@@ -11,7 +9,7 @@ pub struct UIState<'a> {
 }
 
 impl UIState<'_> {
-	pub fn emo_clamp(&self) -> usize {
+	pub fn emojis_clamp(&self) -> usize {
 		return self.filtered_emojis.len().clamp(0, MAX_LIST_LENGTH);
 	}
 
@@ -26,22 +24,4 @@ impl UIState<'_> {
 			})
 			.collect();
 	}
-}
-
-static ALREADY_INSTANTIATED: Mutex<bool> = Mutex::new(false);
-pub fn instantiate_state() -> Option<UIState<'static>> {
-	let mut guard = ALREADY_INSTANTIATED.lock().expect("Unable to lock Mutex");
-	if *guard {
-		return None;
-	}
-
-	*guard = true;
-	let state = UIState {
-		offset: 0,
-		selection: 2,
-		user_input: String::new(),
-		filtered_emojis: vec![""],
-		insert_offset: 0,
-	};
-	return Some(state);
 }

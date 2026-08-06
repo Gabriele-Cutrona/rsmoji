@@ -57,15 +57,15 @@ pub fn draw_menu(state: &UIState) {
 	execute!(
 		io::stdout(),
 		MoveToColumn(cols as u16),
-		MoveUp(state.emo_clamp() as u16 + 1),
+		MoveUp(state.emojis_clamp() as u16 + 1),
 	)
 	.expect("Failed to move cursor to writing position");
 }
 
 pub fn delete_menu(state: &UIState) {
-	execute!(io::stdout(), MoveDown(state.emo_clamp() as u16 + 1),)
+	execute!(io::stdout(), MoveDown(state.emojis_clamp() as u16 + 1),)
 		.expect("Failed to move cursor down");
-	for _i in 0..state.emo_clamp() + 1 {
+	for _i in 0..state.emojis_clamp() + 1 {
 		execute!(io::stdout(), MoveUp(1), Clear(ClearType::CurrentLine)).expect("Failed to clear");
 	}
 }

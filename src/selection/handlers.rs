@@ -7,7 +7,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 pub fn handle_keydown(state: &mut UIState) {
 	let max_offset = state.filtered_emojis.len().saturating_sub(MAX_LIST_LENGTH);
-	let visible_emojis = state.emo_clamp();
+	let visible_emojis = state.emojis_clamp();
 	let emojis_not_empty = !state.filtered_emojis.is_empty();
 
 	if state.offset < max_offset {
@@ -82,7 +82,7 @@ pub fn handle_enter(state: &UIState) -> bool {
 		delete_menu(&state);
 		return true;
 	}
-	return false;
+	false
 }
 
 pub fn handle_backspace(state: &mut UIState, emojis: &Vec<&'static str>) {
