@@ -187,10 +187,13 @@ When run without arguments it performs a git commit (interactive)"#,
 	cursor_to_start();
 	disable_raw_mode().expect("Failed to disable raw mode");
 
+	let value = commit_descriptions.join("\n");
+
 	let git_args = ["commit", "-m", final_commit_message.as_str()]
 		.into_iter()
 		.chain(matches.get_flag("sign").then_some("-S"))
-		.chain(commit_descriptions.iter().flat_map(|desc| vec!["-m", desc]));
+		.chain(vec!["-m"])
+		.chain(vec![value.as_str()]);
     
 	Command::new("git")
 		.args(git_args)
