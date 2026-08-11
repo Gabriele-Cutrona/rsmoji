@@ -46,6 +46,23 @@ Just run `rsmoji` without any additional arguments (obviously you need `git`)
 
 You can use emacs keybindings to move the cursor while typing (Ctrl b, Ctrl f, Ctrl p, Ctrl n)
 
+## Tips - LazyGit Integration
+
+I use `[lazygit](https://github.com/jesseduffield/lazygit)` regularly, and while you can use
+it to add and push and use `rsmoji` to commit, you can also set a keybind to call rsmoji
+inside lazygit itself
+
+Inside `~/.config/lazygit/config.yml` (accessible also by pressing `e` inside the status tab in lazygit)
+you can put this to execute `rsmoji` when pressing **`R`**, you can set it to whatever
+
+```yaml
+customCommands:
+  - key: "R"
+    context: "global"
+    command: "rsmoji"
+    output: "terminal"
+```
+
 ### Roadmap
 
 - [x] Manually sign commits (`-S`)
@@ -62,7 +79,6 @@ You can use emacs keybindings to move the cursor while typing (Ctrl b, Ctrl f, C
 Licensed MIT OR Apache-2.0 (./LICENSE-MIT and ./LICENSE-APACHE respectively)
 
 ### Credits
-
 
 The default colors are [catppuccin-mocha](https://catppuccin.com)
 

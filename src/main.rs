@@ -194,7 +194,7 @@ When run without arguments it performs a git commit (interactive)"#,
 		.chain(matches.get_flag("sign").then_some("-S"))
 		.chain(vec!["-m"])
 		.chain(vec![value.as_str()]);
-    
+
 	Command::new("git")
 		.args(git_args)
 		.status()
