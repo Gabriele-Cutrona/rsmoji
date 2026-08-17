@@ -4,7 +4,7 @@ mod globals;
 mod selection;
 mod ui_state;
 
-use crossterm::cursor::MoveDown;
+use crossterm::cursor::{MoveDown, MoveUp};
 use crossterm::event::{Event, KeyCode, KeyEventKind, read};
 use crossterm::execute;
 use crossterm::style::{Attribute, Print, SetAttribute, SetForegroundColor};
@@ -122,62 +122,103 @@ When run without arguments it performs a git commit (interactive)"#,
 	}
 
 	let mut commit_descriptions: Vec<String> = vec![];
+	let mut line_count: usize = 1;
+	let mut commit_description: String = String::new();
+	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
+	reload_commit_message(
+		&commit_description,
+		state.insert_offset,
+		false,
+		Description { line_count },
+	);
+	loop {
+		let Event::Key(event) = read()? else {
+			continue;
+		};
 
-	let mut line_count: usize = 0;
-	'outer: loop {
-		line_count += 1;
-		let mut commit_description: String = String::new();
-		state.insert_offset = 0;
-		execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
-		reload_commit_message(
-			&commit_description,
-			state.insert_offset,
-			false,
-			Description { line_count },
-		);
-		loop {
-			let Event::Key(event) = read()? else {
-				continue;
-			};
+		if event.kind != KeyEventKind::Press {
+			continue;
+		}
 
-			if event.kind != KeyEventKind::Press {
+		match event.code {
+			KeyCode::Char(c) => handle_char_commit(
+				c,
+				event,
+				&mut state,
+				&mut commit_description,
+				Description { line_count },
+			),
+			KeyCode::Backspace => handle_backspace_commit(
+				&mut state,
+				&mut commit_description,
+				Description { line_count },
+			),
+			KeyCode::Left => {
+				handle_left_commit(&mut state, &commit_description, Description { line_count })
+			}
+			KeyCode::Right => {
+				handle_right_commit(&mut state, &commit_description, Description { line_count })
+			}
+			KeyCode::Up => {
+				if line_count <= 1 {
+					continue;
+				};
+				if line_count == commit_descriptions.len() + 1 {
+					commit_descriptions.push(commit_description.clone());
+				} else {
+					commit_descriptions[line_count - 1] = commit_description.clone();
+				}
+				line_count -= 1;
+				commit_description = commit_descriptions[line_count - 1].clone();
+				state.insert_offset = 0;
+				execute!(
+					io::stdout(),
+					Clear(ClearType::CurrentLine),
+					MoveUp(1),
+					Clear(ClearType::CurrentLine)
+				)
+				.expect("Failed to move cursor up one line");
+				reload_commit_message(
+					&commit_description,
+					state.insert_offset,
+					false,
+					Description { line_count },
+				);
 				continue;
 			}
-
-			match event.code {
-				KeyCode::Char(c) => handle_char_commit(
-					c,
-					event,
-					&mut state,
-					&mut commit_description,
-					Description { line_count },
-				),
-				KeyCode::Backspace => handle_backspace_commit(
-					&mut state,
-					&mut commit_description,
-					Description { line_count },
-				),
-				KeyCode::Left => {
-					handle_left_commit(&mut state, &commit_description, Description { line_count })
-				}
-				KeyCode::Right => {
-					handle_right_commit(&mut state, &commit_description, Description { line_count })
-				}
-				KeyCode::Enter => {
-					if commit_description.is_empty() {
-						break 'outer;
-					}
-					reload_commit_message(
-						&commit_description,
-						state.insert_offset,
-						true,
-						Description { line_count },
-					);
-					commit_descriptions.push(commit_description);
+			KeyCode::Enter => {
+				if commit_description.is_empty() {
 					break;
 				}
-				_ => {}
+				reload_commit_message(
+					&commit_description,
+					state.insert_offset,
+					true,
+					Description { line_count },
+				);
+				if line_count > commit_descriptions.len() {
+					commit_descriptions.push(commit_description.clone());
+				} else {
+					commit_descriptions[line_count - 1] = commit_description.clone();
+				}
+				line_count += 1;
+				if line_count > commit_descriptions.len() {
+					commit_description = "".to_string();
+				} else {
+					commit_description = commit_descriptions[line_count - 1].clone();
+				}
+				state.insert_offset = 0;
+				execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
+				reload_commit_message(
+					&commit_description,
+					state.insert_offset,
+					false,
+					Description { line_count },
+				);
+
+				continue;
 			}
+			_ => {}
 		}
 	}
 
