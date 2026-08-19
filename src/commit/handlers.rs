@@ -56,7 +56,7 @@ pub fn handle_backspace_commit(
 	reload_commit_message(&commit_message, state.insert_offset, false, text_type);
 }
 
-pub fn handle_left_commit(state: &mut UIState, commit_message: &String, text_type: CommitTextType) {
+pub fn handle_left_commit(state: &mut UIState, commit_message: &str, text_type: CommitTextType) {
 	if state.insert_offset < commit_message.graphemes(true).count() {
 		state.insert_offset += 1;
 		reload_commit_message(&commit_message, state.insert_offset, false, text_type);

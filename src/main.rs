@@ -124,6 +124,7 @@ When run without arguments it performs a git commit (interactive)"#,
 
 	let mut commit_descriptions: Vec<String> = vec![];
 	let mut line_count: usize = 0;
+	state.insert_offset = 0;
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
 	reload_commit_message(&"", state.insert_offset, false, Description { line_count });
 	loop {
@@ -200,7 +201,7 @@ When run without arguments it performs a git commit (interactive)"#,
 				std::process::exit(0);
 			}
 			KeyCode::Char('b') if event.modifiers.contains(KeyModifiers::CONTROL) => {
-				if state.insert_offset < commit_message.graphemes(true).count() {
+				if state.insert_offset < commit_descriptions[line_count].graphemes(true).count() {
 					state.insert_offset += 1;
 					reload_commit_message(
 						&commit_descriptions[line_count],
