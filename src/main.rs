@@ -4,8 +4,8 @@ mod globals;
 mod selection;
 mod ui_state;
 
-use crossterm::cursor::{MoveDown, MoveUp};
-use crossterm::event::{Event, KeyCode, KeyEventKind, read};
+use crossterm::cursor::MoveDown;
+use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers, read};
 use crossterm::execute;
 use crossterm::style::{Attribute, Print, SetAttribute, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode};
@@ -20,7 +20,8 @@ use clap::{arg, command};
 
 use crate::commit::CommitTextType::{Description, Title};
 use crate::commit::handlers::{
-	handle_backspace_commit, handle_char_commit, handle_left_commit, handle_right_commit,
+	handle_backspace_commit, handle_char_commit, handle_enter_commit, handle_left_commit,
+	handle_right_commit, handle_up_commit,
 };
 use crate::commit::reload_commit_message;
 use crate::selection::handlers::{
@@ -108,7 +109,7 @@ When run without arguments it performs a git commit (interactive)"#,
 
 		match event.code {
 			KeyCode::Char(c) => {
-				handle_char_commit(c, event, &mut state, &mut commit_message, Title)
+				handle_char_commit(c, event, &mut state, &mut commit_message, Title);
 			}
 			KeyCode::Backspace => handle_backspace_commit(&mut state, &mut commit_message, Title),
 			KeyCode::Left => handle_left_commit(&mut state, &commit_message, Title),
@@ -122,15 +123,9 @@ When run without arguments it performs a git commit (interactive)"#,
 	}
 
 	let mut commit_descriptions: Vec<String> = vec![];
-	let mut line_count: usize = 1;
-	let mut commit_description: String = String::new();
+	let mut line_count: usize = 0;
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
-	reload_commit_message(
-		&commit_description,
-		state.insert_offset,
-		false,
-		Description { line_count },
-	);
+	reload_commit_message(&"", state.insert_offset, false, Description { line_count });
 	loop {
 		let Event::Key(event) = read()? else {
 			continue;
@@ -140,84 +135,93 @@ When run without arguments it performs a git commit (interactive)"#,
 			continue;
 		}
 
+		if line_count >= commit_descriptions.len() {
+			commit_descriptions.push(String::new());
+		}
+
 		match event.code {
-			KeyCode::Char(c) => handle_char_commit(
-				c,
-				event,
-				&mut state,
-				&mut commit_description,
-				Description { line_count },
-			),
+			KeyCode::Char(c) if !event.modifiers.contains(KeyModifiers::CONTROL) => {
+				handle_char_commit(
+					c,
+					event,
+					&mut state,
+					&mut commit_descriptions[line_count],
+					Description { line_count },
+				)
+			}
 			KeyCode::Backspace => handle_backspace_commit(
 				&mut state,
-				&mut commit_description,
+				&mut commit_descriptions[line_count],
 				Description { line_count },
 			),
-			KeyCode::Left => {
-				handle_left_commit(&mut state, &commit_description, Description { line_count })
-			}
-			KeyCode::Right => {
-				handle_right_commit(&mut state, &commit_description, Description { line_count })
-			}
+			KeyCode::Left => handle_left_commit(
+				&mut state,
+				&commit_descriptions[line_count],
+				Description { line_count },
+			),
+			KeyCode::Right => handle_right_commit(
+				&mut state,
+				&commit_descriptions[line_count],
+				Description { line_count },
+			),
 			KeyCode::Up => {
-				if line_count <= 1 {
-					continue;
-				};
-				if line_count == commit_descriptions.len() + 1 {
-					commit_descriptions.push(commit_description.clone());
-				} else {
-					commit_descriptions[line_count - 1] = commit_description.clone();
+				if let Some(x) = handle_up_commit(&commit_descriptions, line_count) {
+					line_count = x.line_count;
+					state.insert_offset = x.insert_offset;
 				}
-				line_count -= 1;
-				commit_description = commit_descriptions[line_count - 1].clone();
-				state.insert_offset = 0;
-				execute!(
-					io::stdout(),
-					Clear(ClearType::CurrentLine),
-					MoveUp(1),
-					Clear(ClearType::CurrentLine)
-				)
-				.expect("Failed to move cursor up one line");
-				reload_commit_message(
-					&commit_description,
-					state.insert_offset,
-					false,
-					Description { line_count },
-				);
-				continue;
 			}
-			KeyCode::Enter => {
-				if commit_description.is_empty() {
+			KeyCode::Char('p') if event.modifiers.contains(KeyModifiers::CONTROL) => {
+				if let Some(x) = handle_up_commit(&commit_descriptions, line_count) {
+					line_count = x.line_count;
+					state.insert_offset = x.insert_offset;
+				}
+			}
+			KeyCode::Enter | KeyCode::Down => {
+				if commit_descriptions[line_count].is_empty() {
 					break;
 				}
-				reload_commit_message(
-					&commit_description,
-					state.insert_offset,
-					true,
-					Description { line_count },
-				);
-				if line_count > commit_descriptions.len() {
-					commit_descriptions.push(commit_description.clone());
-				} else {
-					commit_descriptions[line_count - 1] = commit_description.clone();
+				if let Some(x) = handle_enter_commit(&mut commit_descriptions, line_count) {
+					line_count = x.line_count;
+					state.insert_offset = x.insert_offset;
 				}
-				line_count += 1;
-				if line_count > commit_descriptions.len() {
-					commit_description = "".to_string();
-				} else {
-					commit_description = commit_descriptions[line_count - 1].clone();
-				}
-				state.insert_offset = 0;
-				execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
-				reload_commit_message(
-					&commit_description,
-					state.insert_offset,
-					false,
-					Description { line_count },
-				);
-
-				continue;
 			}
+			KeyCode::Char('n') if event.modifiers.contains(KeyModifiers::CONTROL) => {
+				if commit_descriptions[line_count].is_empty() {
+					break;
+				}
+				if let Some(x) = handle_enter_commit(&mut commit_descriptions, line_count) {
+					line_count = x.line_count;
+					state.insert_offset = x.insert_offset;
+				}
+			}
+			KeyCode::Char('c') if event.modifiers.contains(KeyModifiers::CONTROL) => {
+				cursor_to_start();
+				disable_raw_mode().expect("Failed to disable raw mode");
+				std::process::exit(0);
+			}
+			KeyCode::Char('b') if event.modifiers.contains(KeyModifiers::CONTROL) => {
+				if state.insert_offset < commit_message.graphemes(true).count() {
+					state.insert_offset += 1;
+					reload_commit_message(
+						&commit_descriptions[line_count],
+						state.insert_offset,
+						false,
+						Description { line_count },
+					);
+				}
+			}
+			KeyCode::Char('f') if event.modifiers.contains(KeyModifiers::CONTROL) => {
+				if state.insert_offset != 0 {
+					state.insert_offset -= 1;
+					reload_commit_message(
+						&commit_descriptions[line_count],
+						state.insert_offset,
+						false,
+						Description { line_count },
+					);
+				}
+			}
+
 			_ => {}
 		}
 	}

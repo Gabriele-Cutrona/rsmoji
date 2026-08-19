@@ -1,12 +1,18 @@
+use std::io;
+
 use crossterm::{
+	cursor::{MoveDown, MoveUp},
 	event::{KeyEvent, KeyModifiers},
-	terminal::disable_raw_mode,
+	execute,
+	terminal::{Clear, ClearType},
 };
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
-	commit::{CommitTextType, reload_commit_message},
-	globals::cursor_to_start,
+	commit::{
+		CommitTextType::{self, Description},
+		reload_commit_message,
+	},
 	ui_state::UIState,
 };
 
@@ -19,23 +25,6 @@ pub fn handle_char_commit(
 ) {
 	if event.modifiers.contains(KeyModifiers::CONTROL) {
 		match c {
-			'c' => {
-				cursor_to_start();
-				disable_raw_mode().expect("Failed to disable raw mode");
-				std::process::exit(0);
-			}
-			'b' => {
-				if state.insert_offset < commit_message.graphemes(true).count() {
-					state.insert_offset += 1;
-					reload_commit_message(commit_message, state.insert_offset, false, text_type);
-				}
-			}
-			'f' => {
-				if state.insert_offset != 0 {
-					state.insert_offset -= 1;
-					reload_commit_message(commit_message, state.insert_offset, false, text_type);
-				}
-			}
 			_ => {}
 		}
 		return;
@@ -83,4 +72,64 @@ pub fn handle_right_commit(
 		state.insert_offset -= 1;
 		reload_commit_message(&commit_message, state.insert_offset, false, text_type);
 	}
+}
+
+pub struct LineCountInsertOffset {
+	pub line_count: usize,
+	pub insert_offset: usize,
+}
+
+pub fn handle_up_commit(
+	commit_descriptions: &Vec<String>,
+	line_count: usize,
+) -> Option<LineCountInsertOffset> {
+	if line_count == 0 {
+		return None;
+	};
+	let insert_offset = 0;
+	execute!(
+		io::stdout(),
+		Clear(ClearType::CurrentLine),
+		MoveUp(1),
+		Clear(ClearType::CurrentLine)
+	)
+	.expect("Failed to move cursor up one line");
+
+	reload_commit_message(
+		&commit_descriptions[line_count - 1],
+		insert_offset,
+		false,
+		Description { line_count },
+	);
+
+	Some(LineCountInsertOffset {
+		line_count: line_count - 1,
+		insert_offset,
+	})
+}
+
+pub fn handle_enter_commit(
+	commit_descriptions: &mut Vec<String>,
+	line_count: usize,
+) -> Option<LineCountInsertOffset> {
+	let insert_offset = 0;
+	reload_commit_message(
+		&commit_descriptions[line_count],
+		insert_offset,
+		true,
+		Description { line_count },
+	);
+	let line_count = line_count + 1;
+	commit_descriptions.push(String::new());
+	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
+	reload_commit_message(
+		&commit_descriptions[line_count],
+		insert_offset,
+		false,
+		Description { line_count },
+	);
+	Some(LineCountInsertOffset {
+		line_count,
+		insert_offset,
+	})
 }

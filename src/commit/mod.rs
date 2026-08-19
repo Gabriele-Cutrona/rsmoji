@@ -14,7 +14,7 @@ pub enum CommitTextType {
 }
 
 pub fn reload_commit_message(
-	commit_message: &String,
+	commit_message: &str,
 	insert_offset: usize,
 	end: bool,
 	text_type: CommitTextType,
@@ -31,7 +31,7 @@ pub fn reload_commit_message(
 	let text = if end {
 		format!("? Commit {type_text}: ")
 	} else {
-		message.clone()
+		message
 	};
 	let commit_message = commit_message.to_owned() + "\n";
 	cursor_to_start();
@@ -40,14 +40,14 @@ pub fn reload_commit_message(
 		Clear(ClearType::CurrentLine),
 		SetAttribute(Attribute::Bold),
 		SetForegroundColor(CATPPUCCIN_ACTIVE),
-		Print(text),
+		Print(&text),
 		SetAttribute(Attribute::Reset),
 		Print(&commit_message),
 		MoveUp(1)
 	)
 	.expect("Failed to reload title input");
 
-	let cols = message.len() + commit_message.graphemes(true).count() - insert_offset;
+	let cols = text.len() + commit_message.graphemes(true).count() - insert_offset;
 	execute!(io::stdout(), MoveToColumn(cols as u16 - 1),)
 		.expect("Failed to move cursor to writing position");
 }
