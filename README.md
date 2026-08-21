@@ -68,7 +68,7 @@ customCommands:
 - [x] Manually sign commits (`-S`)
 - [x] Support commit description (not only title)
   - [ ] disable/enable with flag
-  - [ ] go back up to a previous line to edit
+  - [x] go back up to a previous line to edit
 - [ ] Support signed tags message
 - [ ] Support merge messages
 - [ ] Themes (built in and custom)
