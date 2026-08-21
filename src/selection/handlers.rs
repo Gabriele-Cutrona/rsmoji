@@ -1,8 +1,6 @@
-use crate::globals::{MAX_LIST_LENGTH, cursor_to_start};
+use crate::globals::MAX_LIST_LENGTH;
 use crate::selection::{delete_menu, draw_menu, redraw_menu};
 use crate::ui_state::UIState;
-use crossterm::event::{KeyEvent, KeyModifiers};
-use crossterm::terminal::disable_raw_mode;
 use unicode_segmentation::UnicodeSegmentation;
 
 pub fn handle_keydown(state: &mut UIState) {
@@ -46,23 +44,7 @@ pub fn handle_right(state: &mut UIState) {
 	}
 }
 
-pub fn handle_char(c: char, state: &mut UIState, event: KeyEvent, emojis: &Vec<&'static str>) {
-	if event.modifiers.contains(KeyModifiers::CONTROL) {
-		match c {
-			'c' => {
-				cursor_to_start();
-				disable_raw_mode().expect("Failed to disable raw mode");
-				std::process::exit(0);
-			}
-			'p' => handle_keyup(state),
-			'n' => handle_keydown(state),
-			'b' => handle_left(state),
-			'f' => handle_right(state),
-			_ => {}
-		}
-		return;
-	}
-
+pub fn handle_char(c: char, state: &mut UIState, emojis: &Vec<&'static str>) {
 	state.offset = 0;
 	state.selection = 0;
 	delete_menu(&state);
@@ -77,12 +59,17 @@ pub fn handle_char(c: char, state: &mut UIState, event: KeyEvent, emojis: &Vec<&
 	draw_menu(state);
 }
 
-pub fn handle_enter(state: &UIState) -> bool {
-	if !state.filtered_emojis.is_empty() {
-		delete_menu(&state);
-		return true;
+pub enum EmojiSelected {
+	Yes,
+	No,
+}
+
+pub fn handle_enter(state: &UIState) -> EmojiSelected {
+	if state.filtered_emojis.is_empty() {
+		return EmojiSelected::No;
 	}
-	false
+	delete_menu(&state);
+	EmojiSelected::Yes
 }
 
 pub fn handle_backspace(state: &mut UIState, emojis: &Vec<&'static str>) {

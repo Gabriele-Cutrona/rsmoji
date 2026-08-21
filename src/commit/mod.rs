@@ -9,30 +9,23 @@ use std::io;
 use unicode_segmentation::UnicodeSegmentation;
 
 pub enum CommitTextType {
-	Description { line_count: usize },
+	Description(usize), // line_count
 	Title,
 }
 
 pub fn reload_commit_message(
 	commit_message: &str,
 	insert_offset: usize,
-	end: bool,
 	text_type: CommitTextType,
 ) {
 	let type_text = match text_type {
-		CommitTextType::Description { line_count } => {
-			format!("(line number {line_count}) description (enter empty to confirm)")
+		CommitTextType::Description(line_count) => {
+			format!("(line {line_count}) description (empty to confirm)")
 		}
 		CommitTextType::Title => "title".to_string(),
 	};
 
-	let message = format!("? Enter commit {type_text}: ");
-
-	let text = if end {
-		format!("? Commit {type_text}: ")
-	} else {
-		message
-	};
+	let text = format!("? Commit {type_text}: ");
 	let commit_message = commit_message.to_owned() + "\n";
 	cursor_to_start();
 	execute!(

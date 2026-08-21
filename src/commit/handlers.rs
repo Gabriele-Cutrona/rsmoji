@@ -37,7 +37,7 @@ pub fn handle_char_commit(
 		&cs,
 	);
 	*commit_message = graphemes.concat();
-	reload_commit_message(commit_message, state.insert_offset, false, text_type);
+	reload_commit_message(commit_message, state.insert_offset, text_type);
 }
 
 pub fn handle_backspace_commit(
@@ -53,13 +53,13 @@ pub fn handle_backspace_commit(
 			.parse()
 			.expect("Failed to parse commit message");
 	}
-	reload_commit_message(&commit_message, state.insert_offset, false, text_type);
+	reload_commit_message(&commit_message, state.insert_offset, text_type);
 }
 
 pub fn handle_left_commit(state: &mut UIState, commit_message: &str, text_type: CommitTextType) {
 	if state.insert_offset < commit_message.graphemes(true).count() {
 		state.insert_offset += 1;
-		reload_commit_message(&commit_message, state.insert_offset, false, text_type);
+		reload_commit_message(&commit_message, state.insert_offset, text_type);
 	}
 }
 
@@ -70,23 +70,15 @@ pub fn handle_right_commit(
 ) {
 	if state.insert_offset != 0 {
 		state.insert_offset -= 1;
-		reload_commit_message(&commit_message, state.insert_offset, false, text_type);
+		reload_commit_message(&commit_message, state.insert_offset, text_type);
 	}
 }
 
-pub struct LineCountInsertOffset {
-	pub line_count: usize,
-	pub insert_offset: usize,
-}
-
-pub fn handle_up_commit(
-	commit_descriptions: &Vec<String>,
-	line_count: usize,
-) -> Option<LineCountInsertOffset> {
-	if line_count == 0 {
-		return None;
+pub fn handle_up_commit(state: &mut UIState, commit_descriptions: &Vec<String>) {
+	if state.line_count == 0 {
+		return;
 	};
-	let insert_offset = 0;
+	state.insert_offset = 0;
 	execute!(
 		io::stdout(),
 		Clear(ClearType::CurrentLine),
@@ -96,40 +88,27 @@ pub fn handle_up_commit(
 	.expect("Failed to move cursor up one line");
 
 	reload_commit_message(
-		&commit_descriptions[line_count - 1],
-		insert_offset,
-		false,
-		Description { line_count },
+		&commit_descriptions[state.line_count - 1],
+		state.insert_offset,
+		Description(state.line_count),
 	);
 
-	Some(LineCountInsertOffset {
-		line_count: line_count - 1,
-		insert_offset,
-	})
+	state.line_count -= 1;
 }
 
-pub fn handle_enter_commit(
-	commit_descriptions: &mut Vec<String>,
-	line_count: usize,
-) -> Option<LineCountInsertOffset> {
-	let insert_offset = 0;
+pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<String>) {
+	state.insert_offset = 0;
 	reload_commit_message(
-		&commit_descriptions[line_count],
-		insert_offset,
-		true,
-		Description { line_count },
+		&commit_descriptions[state.line_count],
+		state.insert_offset,
+		Description(state.line_count),
 	);
-	let line_count = line_count + 1;
+	state.line_count += 1;
 	commit_descriptions.push(String::new());
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
 	reload_commit_message(
-		&commit_descriptions[line_count],
-		insert_offset,
-		false,
-		Description { line_count },
+		&commit_descriptions[state.line_count],
+		state.insert_offset,
+		Description(state.line_count),
 	);
-	Some(LineCountInsertOffset {
-		line_count,
-		insert_offset,
-	})
 }

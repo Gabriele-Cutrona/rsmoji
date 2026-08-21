@@ -6,6 +6,7 @@ pub struct UIState<'a> {
 	pub user_input: String,
 	pub filtered_emojis: Vec<&'a str>,
 	pub insert_offset: usize,
+	pub line_count: usize,
 }
 
 impl UIState<'_> {
