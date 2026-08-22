@@ -1,4 +1,4 @@
-pub fn return_emojis() -> Vec<&'static str> {
+pub fn return_emojis() -> Vec<String> {
 	vec![
 		"🎨 - Improve structure / format of the code",
 		"⚡️ - Improve performance",
@@ -75,4 +75,7 @@ pub fn return_emojis() -> Vec<&'static str> {
 		"🦺 - Add or update code related to validation",
 		"✈️ - Improve offline support",
 	]
+	.into_iter()
+	.map(|emoji| emoji.to_string())
+	.collect()
 }

@@ -44,7 +44,7 @@ pub fn handle_right(state: &mut UIState) {
 	}
 }
 
-pub fn handle_char(c: char, state: &mut UIState, emojis: &Vec<&'static str>) {
+pub fn handle_char(c: char, state: &mut UIState, emojis: &[String]) {
 	state.offset = 0;
 	state.selection = 0;
 	delete_menu(&state);
@@ -72,7 +72,7 @@ pub fn handle_enter(state: &UIState) -> EmojiSelected {
 	EmojiSelected::Yes
 }
 
-pub fn handle_backspace(state: &mut UIState, emojis: &Vec<&'static str>) {
+pub fn handle_backspace(state: &mut UIState, emojis: &[String]) {
 	delete_menu(&state);
 	let mut graphemes: Vec<&str> = state.user_input.graphemes(true).collect();
 	if !state.user_input.is_empty() && graphemes.len() > state.insert_offset {

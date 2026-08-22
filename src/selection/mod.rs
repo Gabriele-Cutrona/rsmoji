@@ -1,4 +1,5 @@
 pub mod handlers;
+pub mod selection;
 
 use crate::globals::{CATPPUCCIN_ACTIVE, CATPPUCCIN_INACTIVE, MAX_LIST_LENGTH, cursor_to_start};
 use crate::ui_state::UIState;
@@ -46,7 +47,7 @@ pub fn draw_menu(state: &UIState) {
 		if i + state.offset < state.filtered_emojis.len() {
 			execute!(
 				io::stdout(),
-				Print(state.filtered_emojis[i + state.offset]),
+				Print(&state.filtered_emojis[i + state.offset]),
 				SetAttribute(Attribute::Reset),
 				Print("\n".to_string()),
 			)

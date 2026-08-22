@@ -1,3 +1,4 @@
+pub mod commit;
 pub mod handlers;
 
 use crate::globals::{CATPPUCCIN_ACTIVE, cursor_to_start};
