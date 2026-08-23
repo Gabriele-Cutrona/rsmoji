@@ -6,10 +6,10 @@ mod ui_state;
 
 use crossterm::cursor::MoveDown;
 use crossterm::execute;
-use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode};
+use crossterm::terminal::{Clear, ClearType, DisableLineWrap, disable_raw_mode, enable_raw_mode};
 use emojis::return_emojis;
 use globals::cursor_to_start;
-use std::io;
+use std::io::{self};
 use std::process::Command;
 
 use clap::{arg, command};
@@ -29,6 +29,7 @@ When run without arguments it performs a git commit (interactive)"#,
 	let emojis = return_emojis();
 
 	enable_raw_mode().expect("Failed to enable raw mode");
+	execute!(io::stdout(), DisableLineWrap).expect("Failed to Disable Line Wrap");
 
 	let gitmoji = emoji_selection(&emojis);
 	let commit_message = commit_message();

@@ -37,7 +37,7 @@ pub fn handle_char_commit(
 		&cs,
 	);
 	*commit_message = graphemes.concat();
-	reload_commit_message(commit_message, state.insert_offset, text_type);
+	reload_commit_message(commit_message, text_type);
 }
 
 pub fn handle_backspace_commit(
@@ -53,13 +53,13 @@ pub fn handle_backspace_commit(
 			.parse()
 			.expect("Failed to parse commit message");
 	}
-	reload_commit_message(&commit_message, state.insert_offset, text_type);
+	reload_commit_message(&commit_message, text_type);
 }
 
 pub fn handle_left_commit(state: &mut UIState, commit_message: &str, text_type: CommitTextType) {
 	if state.insert_offset < commit_message.graphemes(true).count() {
 		state.insert_offset += 1;
-		reload_commit_message(&commit_message, state.insert_offset, text_type);
+		reload_commit_message(&commit_message, text_type);
 	}
 }
 
@@ -70,7 +70,7 @@ pub fn handle_right_commit(
 ) {
 	if state.insert_offset != 0 {
 		state.insert_offset -= 1;
-		reload_commit_message(&commit_message, state.insert_offset, text_type);
+		reload_commit_message(&commit_message, text_type);
 	}
 }
 
@@ -89,7 +89,6 @@ pub fn handle_up_commit(state: &mut UIState, commit_descriptions: &Vec<String>) 
 
 	reload_commit_message(
 		&commit_descriptions[state.line_count - 1],
-		state.insert_offset,
 		Description(state.line_count),
 	);
 
@@ -100,7 +99,6 @@ pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<St
 	state.insert_offset = 0;
 	reload_commit_message(
 		&commit_descriptions[state.line_count],
-		state.insert_offset,
 		Description(state.line_count),
 	);
 	state.line_count += 1;
@@ -108,7 +106,6 @@ pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<St
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
 	reload_commit_message(
 		&commit_descriptions[state.line_count],
-		state.insert_offset,
 		Description(state.line_count),
 	);
 }

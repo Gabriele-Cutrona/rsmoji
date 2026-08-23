@@ -18,8 +18,7 @@ pub fn redraw_menu(state: &UIState) {
 
 pub fn draw_menu(state: &UIState) {
 	cursor_to_start();
-	let user_input: String = state.user_input.clone();
-	let user_input: String = user_input + "\n";
+	let user_input: String = state.user_input.clone() + "\n";
 	let message = "? Choose a gitmoji! ";
 	execute!(
 		io::stdout(),
@@ -64,9 +63,9 @@ pub fn draw_menu(state: &UIState) {
 }
 
 pub fn delete_menu(state: &UIState) {
-	execute!(io::stdout(), MoveDown(state.emojis_clamp() as u16 + 1),)
+	execute!(io::stdout(), MoveDown(state.emojis_clamp() as u16 + 2))
 		.expect("Failed to move cursor down");
-	for _i in 0..state.emojis_clamp() + 1 {
+	for _i in 0..state.emojis_clamp() + 2 {
 		execute!(io::stdout(), MoveUp(1), Clear(ClearType::CurrentLine)).expect("Failed to clear");
 	}
 }
