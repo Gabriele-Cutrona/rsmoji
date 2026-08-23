@@ -8,15 +8,11 @@ use crossterm::{
 
 use crate::{
 	commit::{
-		CommitTextType::{Description, Title},
-		handlers::{
+		CommitTextType::{Description, Title}, Operation, handlers::{
 			handle_backspace_commit, handle_char_commit, handle_enter_commit, handle_left_commit,
 			handle_right_commit, handle_up_commit,
-		},
-		reload_commit_message,
-	},
-	globals::die,
-	ui_state::UIState,
+		}, reload_commit_message,
+	}, globals::die, ui_state::UIState,
 };
 
 pub fn commit_message() -> String {
@@ -30,7 +26,7 @@ pub fn commit_message() -> String {
 	};
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down by one line");
 	let mut commit_message: String = String::new();
-	reload_commit_message(&commit_message,  Title);
+	reload_commit_message(&commit_message,  Title, Operation::None);
 	loop {
 		let Event::Key(event) = read().expect("Failed to read crossterm event") else {
 			continue;
@@ -52,7 +48,7 @@ pub fn commit_message() -> String {
 				handle_right_commit(&mut state, &commit_message, Title)
 			}
 			KeyCode::Enter => {
-				reload_commit_message(&commit_message, Title);
+				reload_commit_message(&commit_message, Title, Operation::None);
 				break;
 			}
 			KeyCode::Char('c') => die(),
@@ -73,7 +69,7 @@ pub fn commit_descriptions() -> Vec<String> {
 	};
 	let mut commit_descriptions: Vec<String> = vec![];
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
-	reload_commit_message(&"", Description(state.line_count));
+	reload_commit_message(&"", Description(state.line_count), Operation::None);
 	loop {
 		let Event::Key(event) = read().expect("Failed to read crossterm event") else {
 			continue;

@@ -11,7 +11,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::{
 	commit::{
 		CommitTextType::{self, Description},
-		reload_commit_message,
+		Operation, reload_commit_message,
 	},
 	ui_state::UIState,
 };
@@ -37,7 +37,7 @@ pub fn handle_char_commit(
 		&cs,
 	);
 	*commit_message = graphemes.concat();
-	reload_commit_message(commit_message, text_type);
+	reload_commit_message(commit_message, text_type, Operation::Add);
 }
 
 pub fn handle_backspace_commit(
@@ -53,13 +53,13 @@ pub fn handle_backspace_commit(
 			.parse()
 			.expect("Failed to parse commit message");
 	}
-	reload_commit_message(&commit_message, text_type);
+	reload_commit_message(&commit_message, text_type, Operation::Del);
 }
 
 pub fn handle_left_commit(state: &mut UIState, commit_message: &str, text_type: CommitTextType) {
 	if state.insert_offset < commit_message.graphemes(true).count() {
 		state.insert_offset += 1;
-		reload_commit_message(&commit_message, text_type);
+		reload_commit_message(&commit_message, text_type, Operation::None);
 	}
 }
 
@@ -70,7 +70,7 @@ pub fn handle_right_commit(
 ) {
 	if state.insert_offset != 0 {
 		state.insert_offset -= 1;
-		reload_commit_message(&commit_message, text_type);
+		reload_commit_message(&commit_message, text_type, Operation::None);
 	}
 }
 
@@ -90,6 +90,7 @@ pub fn handle_up_commit(state: &mut UIState, commit_descriptions: &Vec<String>) 
 	reload_commit_message(
 		&commit_descriptions[state.line_count - 1],
 		Description(state.line_count),
+		Operation::None,
 	);
 
 	state.line_count -= 1;
@@ -100,6 +101,7 @@ pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<St
 	reload_commit_message(
 		&commit_descriptions[state.line_count],
 		Description(state.line_count),
+		Operation::None,
 	);
 	state.line_count += 1;
 	commit_descriptions.push(String::new());
@@ -107,5 +109,6 @@ pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<St
 	reload_commit_message(
 		&commit_descriptions[state.line_count],
 		Description(state.line_count),
+		Operation::None,
 	);
 }

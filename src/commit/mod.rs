@@ -9,12 +9,20 @@ use crossterm::{execute, terminal};
 use std::io;
 use unicode_segmentation::UnicodeSegmentation;
 
+const OFFSET: usize = 20;
+
 pub enum CommitTextType {
 	Description(usize), // line_count
 	Title,
 }
 
-pub fn reload_commit_message(commit_message: &str, text_type: CommitTextType) {
+pub enum Operation {
+	Add,
+	Del,
+	None,
+}
+
+pub fn reload_commit_message(commit_message: &str, text_type: CommitTextType, op: Operation) {
 	let type_text = match text_type {
 		CommitTextType::Description(line_count) => {
 			format!("(line {line_count}) description (empty to confirm)")
@@ -22,32 +30,34 @@ pub fn reload_commit_message(commit_message: &str, text_type: CommitTextType) {
 		CommitTextType::Title => "title".to_string(),
 	};
 
-	let offset = 5;
-
 	let text = format!("? Commit {type_text}: ");
 	let commit_message = commit_message.to_owned() + "\n";
 	let mut printme_text = text + commit_message.as_str();
 
 	let (t_cols, _) = terminal::size().expect("no");
 
-	for i in 0..(printme_text.graphemes(true).count() / (t_cols as usize - offset)) {
-		printme_text.insert_str((t_cols as usize - offset) * (i + 1), "\r\n  ");
-	}
-
-	let number_of_lines = {
-		let count = printme_text.graphemes(true).count();
-		let cols = t_cols as usize - offset;
-		if count == cols + 3 {
-			// why + 3 you may ask? ...it works.
-			count / cols
-		} else {
-			count / cols + 1
-		}
+	let number_of_lines = printme_text.len() / (t_cols as usize - OFFSET);
+	let number_of_lines_prev = match op {
+		Operation::Del => (printme_text.len() + 1) / (t_cols as usize - OFFSET),
+		Operation::Add => (printme_text.len() - 1) / (t_cols as usize - OFFSET),
+		Operation::None => number_of_lines,
 	};
+
+	for i in 0..number_of_lines {
+		let index = (t_cols as usize - OFFSET) * (i + 1);
+
+		// arbitrary number (5), checks for multi-byte chars like あ
+		for j in 0..5 {
+			if printme_text.is_char_boundary(index - j) {
+				printme_text.insert_str(index - j, "\r\n  ");
+				break;
+			}
+		}
+	}
 
 	cursor_to_start();
 
-	for _ in 0..number_of_lines {
+	for _ in 0..number_of_lines_prev + 1 {
 		execute!(io::stdout(), Clear(ClearType::CurrentLine), MoveUp(1),)
 			.expect("Failed to reload title input");
 	}
