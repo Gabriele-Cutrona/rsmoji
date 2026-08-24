@@ -76,29 +76,15 @@ pub fn handle_up_commit(state: &mut UIState, commit_descriptions: &Vec<String>) 
 	let (t_cols, _) = terminal::size().unwrap_or((80, 24));
 
 	let commit_description =
-		format!("? Commit Description: ") + commit_descriptions[state.line_count].as_str();
-	let commit_description2 =
 		format!("? Commit Description: ") + commit_descriptions[state.line_count - 1].as_str();
 
-	let current_number_of_lines: usize = (commit_description.width() / t_cols as usize)
-		+ (commit_description2.width() / t_cols as usize) + 1;
-
-	for _i in 0..current_number_of_lines {
-		execute!(
-			io::stdout(),
-			Clear(ClearType::CurrentLine),
-			MoveUp(1),
-			// Clear(ClearType::CurrentLine),
-		)
-		.expect("Failed to move cursor up one line");
-	}
-	// execute!(io::stdout(), Clear(ClearType::CurrentLine)).expect("Failed to move cursor up one line");
+	let current_number_of_lines: usize = commit_description.width() / t_cols as usize;
 
 	state.line_count -= 1;
 	reload_commit_message(
 		&commit_descriptions[state.line_count],
 		Description(state.line_count),
-		Operation::None,
+		Operation::Up(current_number_of_lines),
 	);
 }
 
@@ -107,7 +93,7 @@ pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<St
 	reload_commit_message(
 		&commit_descriptions[state.line_count],
 		Description(state.line_count),
-		Operation::UpOrDown,
+		Operation::Down,
 	);
 	state.line_count += 1;
 	commit_descriptions.push(String::new());

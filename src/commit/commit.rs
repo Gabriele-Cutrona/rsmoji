@@ -48,7 +48,7 @@ pub fn commit_message() -> String {
 				handle_right_commit(&mut state, &commit_message, Title)
 			}
 			KeyCode::Enter => {
-				reload_commit_message(&commit_message, Title, Operation::UpOrDown);
+				reload_commit_message(&commit_message, Title, Operation::Down);
 				break;
 			}
 			KeyCode::Char('c') => die(),

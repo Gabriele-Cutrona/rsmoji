@@ -16,7 +16,8 @@ pub enum CommitTextType {
 }
 
 pub enum Operation {
-	UpOrDown,
+	Up(usize), // number of lines of current line
+	Down,
 	Add,
 	Del,
 	None,
@@ -43,7 +44,6 @@ pub fn reload_commit_message(commit_message: &str, text_type: CommitTextType, op
 
 	let mut new_printme_text = String::new();
 	let mut added_ago: usize = 0;
-	let mut current_number_of_lines: usize = 0;
 	for (_i, c) in printme_text.chars().enumerate() {
 		let index = t_cols as usize;
 
@@ -52,21 +52,24 @@ pub fn reload_commit_message(commit_message: &str, text_type: CommitTextType, op
 		{
 			new_printme_text.push_str("\r\n  ");
 			added_ago = 0;
-			current_number_of_lines += 1;
 		}
 		added_ago += 1;
 		new_printme_text.push_str(c.to_string().as_str());
 	}
 	cursor_to_start();
+	let current_number_of_lines: usize = new_printme_text.matches('\n').count();
 
-	for _ in 0..=*previous_number_of_lines {
-		execute!(io::stdout(), Clear(ClearType::CurrentLine), MoveUp(1),)
-			.expect("Failed to reload title input");
+	execute!(io::stdout(), MoveUp(*previous_number_of_lines as u16 + 1))
+		.expect("Failed to reload title input");
+	if let Operation::Up(x) = op {
+		execute!(io::stdout(), MoveUp(x as u16 + 1)).expect("Failed to reload title input");
 	}
+
 	execute!(
 		io::stdout(),
 		MoveDown(1),
 		SetAttribute(Attribute::Bold),
+		Clear(ClearType::FromCursorDown),
 		// SetForegroundColor(CATPPUCCIN_ACTIVE),
 		// Print(&text),
 		Print(&new_printme_text),
@@ -76,7 +79,7 @@ pub fn reload_commit_message(commit_message: &str, text_type: CommitTextType, op
 	)
 	.expect("Failed to reload title input");
 	match op {
-		Operation::UpOrDown => *previous_number_of_lines = 0,
+		Operation::Down => *previous_number_of_lines = 0,
 		_ => *previous_number_of_lines = current_number_of_lines,
 	}
 }
