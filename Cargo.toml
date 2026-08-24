@@ -12,3 +12,4 @@ categories = ["development-tools", "command-line-utilities"]
 clap = { version = "4.6.1", features = ["cargo"] }
 crossterm = "0.29.0"
 unicode-segmentation = "1.12.0"
+unicode-width = "0.2.2"

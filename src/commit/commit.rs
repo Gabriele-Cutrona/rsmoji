@@ -38,7 +38,7 @@ pub fn commit_message() -> String {
 
 		match event.code {
 			KeyCode::Char(c) if !event.modifiers.contains(KeyModifiers::CONTROL) => {
-				handle_char_commit(c, event, &mut state, &mut commit_message, Title)
+				handle_char_commit(c, &mut state, &mut commit_message, Title)
 			}
 			KeyCode::Backspace => handle_backspace_commit(&mut state, &mut commit_message, Title),
 			KeyCode::Left | KeyCode::Char('b') => {
@@ -48,7 +48,7 @@ pub fn commit_message() -> String {
 				handle_right_commit(&mut state, &commit_message, Title)
 			}
 			KeyCode::Enter => {
-				reload_commit_message(&commit_message, Title, Operation::None);
+				reload_commit_message(&commit_message, Title, Operation::UpOrDown);
 				break;
 			}
 			KeyCode::Char('c') => die(),
@@ -88,7 +88,7 @@ pub fn commit_descriptions() -> Vec<String> {
 
 		match event.code {
 			KeyCode::Char(c) if !event.modifiers.contains(KeyModifiers::CONTROL) => {
-				handle_char_commit(c, event, &mut state, single_desc, desc)
+				handle_char_commit(c, &mut state, single_desc, desc)
 			}
 			KeyCode::Backspace => handle_backspace_commit(&mut state, single_desc, desc),
 			KeyCode::Left | KeyCode::Char('b') => handle_left_commit(&mut state, single_desc, desc),

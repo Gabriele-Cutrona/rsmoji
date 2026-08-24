@@ -4,9 +4,10 @@ use crossterm::{
 	cursor::{MoveDown, MoveUp},
 	event::{KeyEvent, KeyModifiers},
 	execute,
-	terminal::{Clear, ClearType},
+	terminal::{self, Clear, ClearType},
 };
 use unicode_segmentation::UnicodeSegmentation;
+use unicode_width::UnicodeWidthStr;
 
 use crate::{
 	commit::{
@@ -18,18 +19,10 @@ use crate::{
 
 pub fn handle_char_commit(
 	c: char,
-	event: KeyEvent,
 	state: &mut UIState,
 	commit_message: &mut String,
 	text_type: CommitTextType,
 ) {
-	if event.modifiers.contains(KeyModifiers::CONTROL) {
-		match c {
-			_ => {}
-		}
-		return;
-	}
-
 	let mut graphemes: Vec<&str> = commit_message.graphemes(true).collect();
 	let cs = c.to_string();
 	graphemes.insert(
@@ -79,21 +72,34 @@ pub fn handle_up_commit(state: &mut UIState, commit_descriptions: &Vec<String>) 
 		return;
 	};
 	state.insert_offset = 0;
-	execute!(
-		io::stdout(),
-		Clear(ClearType::CurrentLine),
-		MoveUp(1),
-		Clear(ClearType::CurrentLine)
-	)
-	.expect("Failed to move cursor up one line");
 
+	let (t_cols, _) = terminal::size().unwrap_or((80, 24));
+
+	let commit_description =
+		format!("? Commit Description: ") + commit_descriptions[state.line_count].as_str();
+	let commit_description2 =
+		format!("? Commit Description: ") + commit_descriptions[state.line_count - 1].as_str();
+
+	let current_number_of_lines: usize = (commit_description.width() / t_cols as usize)
+		+ (commit_description2.width() / t_cols as usize) + 1;
+
+	for _i in 0..current_number_of_lines {
+		execute!(
+			io::stdout(),
+			Clear(ClearType::CurrentLine),
+			MoveUp(1),
+			// Clear(ClearType::CurrentLine),
+		)
+		.expect("Failed to move cursor up one line");
+	}
+	// execute!(io::stdout(), Clear(ClearType::CurrentLine)).expect("Failed to move cursor up one line");
+
+	state.line_count -= 1;
 	reload_commit_message(
-		&commit_descriptions[state.line_count - 1],
+		&commit_descriptions[state.line_count],
 		Description(state.line_count),
 		Operation::None,
 	);
-
-	state.line_count -= 1;
 }
 
 pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<String>) {
@@ -101,7 +107,7 @@ pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<St
 	reload_commit_message(
 		&commit_descriptions[state.line_count],
 		Description(state.line_count),
-		Operation::None,
+		Operation::UpOrDown,
 	);
 	state.line_count += 1;
 	commit_descriptions.push(String::new());
