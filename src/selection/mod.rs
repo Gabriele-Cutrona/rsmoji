@@ -12,7 +12,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crossterm::execute;
 
 pub fn redraw_menu(state: &UIState) {
-	delete_menu(&state);
+	delete_menu(state);
 	draw_menu(state);
 }
 
@@ -63,9 +63,9 @@ pub fn draw_menu(state: &UIState) {
 }
 
 pub fn delete_menu(state: &UIState) {
-	execute!(io::stdout(), MoveDown(state.emojis_clamp() as u16 + 2))
+	execute!(io::stdout(), MoveDown(state.emojis_clamp() as u16 + 1))
 		.expect("Failed to move cursor down");
-	for _i in 0..state.emojis_clamp() + 2 {
+	for _i in 0..state.emojis_clamp() + 1 {
 		execute!(io::stdout(), MoveUp(1), Clear(ClearType::CurrentLine)).expect("Failed to clear");
 	}
 }

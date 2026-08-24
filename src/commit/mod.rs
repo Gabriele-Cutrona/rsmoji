@@ -9,7 +9,7 @@ use crossterm::{execute, terminal};
 use std::io;
 use unicode_segmentation::UnicodeSegmentation;
 
-const OFFSET: usize = 20;
+const OFFSET: usize = 10;
 
 pub enum CommitTextType {
 	Description(usize), // line_count
@@ -32,29 +32,27 @@ pub fn reload_commit_message(commit_message: &str, text_type: CommitTextType, op
 
 	let text = format!("? Commit {type_text}: ");
 	let commit_message = commit_message.to_owned() + "\n";
-	let mut printme_text = text + commit_message.as_str();
+	let printme_text = text + commit_message.as_str();
 
-	let (t_cols, _) = terminal::size().expect("no");
+	let (t_cols, _) = terminal::size().unwrap_or((80, 24));
 
-	let number_of_lines = printme_text.len() / (t_cols as usize - OFFSET);
 	let number_of_lines_prev = match op {
-		Operation::Del => (printme_text.len() + 1) / (t_cols as usize - OFFSET),
-		Operation::Add => (printme_text.len() - 1) / (t_cols as usize - OFFSET),
-		Operation::None => number_of_lines,
+		// TODO: this can absolutely be done better to account for
+		// other tings such as window resizing, but for now it's
+		// fine
+		Operation::Del => (printme_text.graphemes(true).count() + 0) / (t_cols as usize - OFFSET),
+		Operation::Add => (printme_text.graphemes(true).count() - 2) / (t_cols as usize - OFFSET),
+		Operation::None => printme_text.graphemes(true).count() / (t_cols as usize - OFFSET),
 	};
 
-	for i in 0..number_of_lines {
-		let index = (t_cols as usize - OFFSET) * (i + 1);
-
-		// arbitrary number (5), checks for multi-byte chars like あ
-		for j in 0..5 {
-			if printme_text.is_char_boundary(index - j) {
-				printme_text.insert_str(index - j, "\r\n  ");
-				break;
-			}
+	let mut new_printme_text = String::new();
+	for (i, c) in printme_text.chars().enumerate() {
+		let index = t_cols as usize - OFFSET;
+		if i != 0 && i % index == 0 {
+			new_printme_text.push_str("\r\n  ");
 		}
+		new_printme_text.push_str(c.to_string().as_str());
 	}
-
 	cursor_to_start();
 
 	for _ in 0..number_of_lines_prev + 1 {
@@ -67,7 +65,7 @@ pub fn reload_commit_message(commit_message: &str, text_type: CommitTextType, op
 		SetAttribute(Attribute::Bold),
 		// SetForegroundColor(CATPPUCCIN_ACTIVE),
 		// Print(&text),
-		Print(&printme_text),
+		Print(&new_printme_text),
 		// SetAttribute(Attribute::Reset),
 		// Print(&commit_message),
 		MoveUp(1),
