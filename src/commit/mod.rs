@@ -8,7 +8,8 @@ use crossterm::terminal::{Clear, ClearType};
 use crossterm::{execute, terminal};
 use std::io;
 use std::sync::Mutex;
-use unicode_width::UnicodeWidthStr;
+use unicode_segmentation::UnicodeSegmentation;
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 static PREVIOUS_NUMBER_OF_LINES: Mutex<u16> = Mutex::new(0);
 // anti-pattern in single threaded apps, yes I know, I don't care (for now at least)
@@ -61,12 +62,14 @@ pub fn reload_commit_message(
 	)
 	.expect("Failed to reload title input");
 
-	let cols = ((total.width() - *guard as usize * t_cols as usize) as isize
-		- insert_offset as isize)
-		.rem_euclid(t_cols as isize);
+	let total_grapheme_indices: Vec<(usize, &str)> = total.grapheme_indices(true).collect();
+	let cursor_stop_char =
+		total_grapheme_indices[total.grapheme_indices(true).count() - insert_offset - 1];
+	let left_slice = &total[..cursor_stop_char.0];
+	let cols = (left_slice.width()).rem_euclid(t_cols as usize) + cursor_stop_char.1.width();
 
 	if *guard > 0 {
-		let rows = *guard as usize - ((total.width() - 1 - insert_offset) / t_cols as usize);
+		let rows = *guard as usize - (left_slice.width() / t_cols as usize);
 		if rows > 0 {
 			execute!(io::stdout(), MoveToColumn(cols as u16), MoveUp(rows as u16))
 				.expect("Failed to move cursor to writing position");
