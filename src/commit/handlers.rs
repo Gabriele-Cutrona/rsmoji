@@ -105,7 +105,7 @@ pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<St
 	);
 	state.line_count += 1;
 	commit_descriptions.push(String::new());
-	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
+	print!("\n");
 	reload_commit_message(
 		&commit_descriptions[state.line_count],
 		state.insert_offset,

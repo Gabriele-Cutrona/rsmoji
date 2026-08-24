@@ -3,7 +3,7 @@
 Hello there! ^w^
 
 This is a simple rust CLI tool to add **emojis** to commits!
-It uses [crossterm](https://crates.io/crates/crossterm), [unicode-segmentation](https://crates.io/crates/unicode-segmentation) and [clap](https://crates.io/crates/clap)
+It uses [crossterm](https://crates.io/crates/crossterm), [unicode-segmentation](https://crates.io/crates/unicode-segmentation), [unicode-width](https://crates.io/crates/unicode-width) and [clap](https://crates.io/crates/clap)
 
 <div>
 	<img width="100" height="100" src="https://rustacean.net/assets/cuddlyferris.svg" />
@@ -15,7 +15,7 @@ It uses [crossterm](https://crates.io/crates/crossterm), [unicode-segmentation](
 - 😃 It adds emojis to git commits
 - 🖊️ You can tell it to manually sign a commit (`-S` or `--sign` flag)
 - 💬 It can add multi-line commit descriptions
-- 🚧 The end for now :( (see roadmap for details)
+- 🚧 The end for now... (see roadmap for details)
 
 ## Installation - using `cargo` (crates.io)
 
