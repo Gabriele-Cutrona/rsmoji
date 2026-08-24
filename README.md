@@ -15,7 +15,7 @@ It uses [crossterm](https://crates.io/crates/crossterm), [unicode-segmentation](
 - 😃 It adds emojis to git commits
 - 🖊️ You can tell it to manually sign a commit (`-S` or `--sign` flag)
 - 💬 It can add multi-line commit descriptions
-- 🚧 The end for now... (see roadmap for details)
+- 🚧 The end for now :( (see roadmap for details)
 
 ## Installation - using `cargo` (crates.io)
 
@@ -63,6 +63,20 @@ customCommands:
     output: "terminal"
 ```
 
+## Why?
+
+I made this for the following reasons:
+
+- I used [gitmoji-cli](https://github.com/carloscuesta/gitmoji), and I liked it a lot, but I wanted something more, such as:
+- not needing a JavaScript runtime
+- being faster (text flickering, startup time, etc...)
+- I wanted to learn rust
+- I wanted more features (signed commit, multi-line descriptions, and the other things in the roadmap)
+
+Instead of using some higher-level TUI toolkit, I used only crossterm for the UI, which brought me great pain, but also a great learning experience.
+It isn't an efficient or even "good" way, but... recreational programming FTW, I suppose?
+Afterall it's just a simple tool that somebody experienced could recreate in very little time with the right toolkit (I mean, if _I_ managed to do it...)
+
 ### Roadmap
 
 - [x] Manually sign commits (`-S`)
@@ -82,8 +96,4 @@ Licensed MIT OR Apache-2.0 (./LICENSE-MIT and ./LICENSE-APACHE respectively)
 
 The default colors are [catppuccin-mocha](https://catppuccin.com)
 
-The project was heavily inspired by
-[gitmoji](https://github.com/carloscuesta/gitmoji), and the emoji list for this
-project is taken from there. I made this mainly because I wanted more features
-(which I still haven't implemented completely), I wanted to learn rust and I wanted
-something faster
+The emoji list used by this program is taken from [gitmoji](https://github.com/carloscuesta/gitmoji)
