@@ -87,13 +87,13 @@ pub fn handle_up_commit(state: &mut UIState, commit_descriptions: &Vec<String>) 
 	)
 	.expect("Failed to move cursor up one line");
 
+	state.line_count -= 1;
 	reload_commit_message(
-		&commit_descriptions[state.line_count - 1],
+		&commit_descriptions[state.line_count],
 		state.insert_offset,
 		Description(state.line_count),
 	);
 
-	state.line_count -= 1;
 }
 
 pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<String>) {
