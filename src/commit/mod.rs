@@ -44,6 +44,7 @@ pub fn reload_commit_message(commit_message: &str, text_type: CommitTextType, op
 
 	let mut new_printme_text = String::new();
 	let mut added_ago: usize = 0;
+	let mut current_number_of_lines = 0;
 	for (_i, c) in printme_text.chars().enumerate() {
 		let index = t_cols as usize;
 
@@ -52,12 +53,13 @@ pub fn reload_commit_message(commit_message: &str, text_type: CommitTextType, op
 		{
 			new_printme_text.push_str("\r\n  ");
 			added_ago = 0;
+			current_number_of_lines += 1;
 		}
 		added_ago += 1;
 		new_printme_text.push_str(c.to_string().as_str());
 	}
 	cursor_to_start();
-	let current_number_of_lines: usize = new_printme_text.matches('\n').count();
+	// let current_number_of_lines: usize = new_printme_text.matches('\n').count();
 
 	execute!(io::stdout(), MoveUp(*previous_number_of_lines as u16 + 1))
 		.expect("Failed to reload title input");

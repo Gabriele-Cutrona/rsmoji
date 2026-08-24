@@ -29,7 +29,7 @@ When run without arguments it performs a git commit (interactive)"#,
 	let emojis = return_emojis();
 
 	enable_raw_mode().expect("Failed to enable raw mode");
-	execute!(io::stdout(), DisableLineWrap).expect("Failed to Disable Line Wrap");
+	// execute!(io::stdout(), DisableLineWrap).expect("Failed to Disable Line Wrap");
 
 	let gitmoji = emoji_selection(&emojis);
 	let commit_message = commit_message();
