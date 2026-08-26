@@ -1,7 +1,7 @@
 use std::io;
 
 use crossterm::{
-	cursor::{MoveDown, MoveUp},
+	cursor::MoveUp,
 	event::{KeyEvent, KeyModifiers},
 	execute,
 	terminal::{Clear, ClearType},

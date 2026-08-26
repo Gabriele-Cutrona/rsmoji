@@ -81,13 +81,14 @@ Afterall it's just a simple tool that somebody experienced could recreate in ver
 
 - [x] Manually sign commits (`-S`)
 - [x] Support commit description (not only title)
-  - [ ] disable/enable with flag
   - [x] go back up to a previous line to edit
 - [x] 50/72 Git Rule (not enforced, just advice)
-  - [ ] disable/enable with flag
-- [ ] Support signed tags message
-- [ ] Support merge messages
-- [ ] Themes (built in and custom)
+- [ ] Configuration via TOML file
+  - [ ] Toggle commit descriptions
+  - [ ] Toggle 50/72 guide
+  - [ ] Themes
+- [ ] Signed Tags Messages
+- [ ] Merge messages
 - [ ] API to update emoji list dynamically (optional)
 
 ### License
