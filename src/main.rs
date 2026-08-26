@@ -4,8 +4,6 @@ mod globals;
 mod selection;
 mod ui_state;
 
-use crossterm::cursor::MoveDown;
-use crossterm::execute;
 use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode};
 use emojis::return_emojis;
 use globals::cursor_to_start;
@@ -34,7 +32,7 @@ When run without arguments it performs a git commit (interactive)"#,
 	let commit_message = commit_message();
 	let commit_descriptions = commit_descriptions();
 
-	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down by one line");
+	print!("\n");
 	cursor_to_start();
 	disable_raw_mode().expect("Failed to disable raw mode");
 
