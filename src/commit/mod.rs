@@ -9,10 +9,13 @@ use crossterm::{execute, terminal};
 use std::io;
 use std::sync::Mutex;
 use unicode_segmentation::UnicodeSegmentation;
-use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
+use unicode_width::UnicodeWidthStr;
 
 static PREVIOUS_NUMBER_OF_LINES: Mutex<u16> = Mutex::new(0);
 // anti-pattern in single threaded apps, yes I know, I don't care (for now at least)
+
+const MAX_TITLE_CHARS: usize = 50 - 2; // 50 - (emoji + space)
+const MAX_DESCRIPTION_CHARS: usize = 72;
 
 pub enum CommitTextType {
 	Description(usize), // line_count
@@ -24,15 +27,22 @@ pub fn reload_commit_message(
 	insert_offset: usize,
 	text_type: CommitTextType,
 ) {
-	let type_text = match text_type {
-		CommitTextType::Description(line_count) => {
-			format!("(line {line_count}) description (empty to confirm)")
-		}
-		CommitTextType::Title => "title".to_string(),
+	let commit_message = commit_message.to_owned();
+	let length = commit_message.graphemes(true).count();
+	let length_str = if length < 10 {
+		 format!("0{length}")
+	} else {
+		 format!("{length}")
 	};
 
-	let text = format!("? Commit {type_text}: ");
-	let commit_message = commit_message.to_owned();
+	let text = match text_type {
+		CommitTextType::Title => format!("? Commit Title {length_str}/{MAX_TITLE_CHARS}: "),
+		CommitTextType::Description(line_count) => {
+			format!(
+				"? (line {line_count}) Commit Description (empty to confirm) {length_str}/{MAX_DESCRIPTION_CHARS}: "
+			)
+		}
+	};
 
 	let total = format!("{text}{commit_message}");
 	let (t_cols, _) = terminal::size().unwrap_or((80, 24));

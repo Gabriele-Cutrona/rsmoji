@@ -83,6 +83,8 @@ Afterall it's just a simple tool that somebody experienced could recreate in ver
 - [x] Support commit description (not only title)
   - [ ] disable/enable with flag
   - [x] go back up to a previous line to edit
+- [x] 50/72 Git Rule (not enforced, just advice)
+  - [ ] disable/enable with flag
 - [ ] Support signed tags message
 - [ ] Support merge messages
 - [ ] Themes (built in and custom)
