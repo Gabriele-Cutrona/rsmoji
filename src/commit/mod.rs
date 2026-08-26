@@ -29,17 +29,13 @@ pub fn reload_commit_message(
 ) {
 	let commit_message = commit_message.to_owned();
 	let length = commit_message.graphemes(true).count();
-	let length_str = if length < 10 {
-		 format!("0{length}")
-	} else {
-		 format!("{length}")
-	};
 
 	let text = match text_type {
-		CommitTextType::Title => format!("? Commit Title {length_str}/{MAX_TITLE_CHARS}: "),
+		CommitTextType::Title => format!("? Commit Title {:02}/{MAX_TITLE_CHARS}: ", length),
 		CommitTextType::Description(line_count) => {
 			format!(
-				"? (line {line_count}) Commit Description (empty to confirm) {length_str}/{MAX_DESCRIPTION_CHARS}: "
+				"? (line {line_count}) Commit Description (empty to confirm) {:02}/{MAX_DESCRIPTION_CHARS}: ",
+				length
 			)
 		}
 	};
