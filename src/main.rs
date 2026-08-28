@@ -21,7 +21,12 @@ fn main() -> io::Result<()> {
 			r#"✨ Gitmojis, now oxidized! 🦀
 When run without arguments it performs a git commit (interactive)"#,
 		)
-		.arg(arg!(-S --sign "enable signing for this specific commit"))
+		.arg(arg!(-S --sign "Enable signing for this specific commit"))
+		.arg(
+			arg!(-p --"print-command" <choice> "Print final git command before executing it")
+			.value_parser(["yes", "no"])
+			.default_value("yes")
+		)
 		.get_matches();
 
 	let emojis = return_emojis();
@@ -36,14 +41,22 @@ When run without arguments it performs a git commit (interactive)"#,
 	cursor_to_start();
 	disable_raw_mode().expect("Failed to disable raw mode");
 
-	let final_commit_message = gitmoji + " " + &commit_message;
-	let value = commit_descriptions.join("\n");
+	let final_commit_message = format!("{gitmoji} {commit_message}").trim().to_string();
+	let descriptions_string = commit_descriptions.join("\n").trim().to_string();
 
-	let git_args = ["commit", "-m", final_commit_message.as_str()]
+	let git_args: Vec<&str> = ["commit", "-m", final_commit_message.as_str()]
 		.into_iter()
 		.chain(matches.get_flag("sign").then_some("-S"))
 		.chain(vec!["-m"])
-		.chain(vec![value.as_str()]);
+		.chain(vec![descriptions_string.as_str()])
+		.collect();
+
+	let print_command: &String = matches
+		.get_one("print-command")
+		.expect("failed to read print-command");
+	if print_command == "yes" {
+		println!("git commit -m {final_commit_message} -m\n{descriptions_string}");
+	};
 
 	Command::new("git")
 		.args(git_args)

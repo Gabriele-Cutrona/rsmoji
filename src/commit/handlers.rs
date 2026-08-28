@@ -93,7 +93,6 @@ pub fn handle_up_commit(state: &mut UIState, commit_descriptions: &Vec<String>) 
 		state.insert_offset,
 		Description(state.line_count),
 	);
-
 }
 
 pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<String>) {
