@@ -34,10 +34,12 @@ echo 'export PATH="$PATH:$HOME/.cargo/bin"' >> ~/.bashrc
 echo 'export PATH="$PATH:$HOME/.cargo/bin"' >> ~/.zshrc
 ```
 
-To update, you can use `cargo-update`, install it with `cargo install cargo-update`, and then you can run:
+### Updating - using `cargo` (crates.io)
+
+To update, you can just call `cargo install` again like so:
 
 ```zsh
-cargo-install-update install-update rsmoji
+cargo install rsmoji
 ```
 
 ## Usage
@@ -61,6 +63,16 @@ customCommands:
     context: "global"
     command: "rsmoji"
     output: "terminal"
+```
+
+## Tips - Update Everything
+
+If you prefer to update every crate (including rsmoji) you 
+have installed  in bulk, you can use `cargo-update`, install 
+it with `cargo install cargo-update`, and then you can run:
+
+```zsh
+cargo-install-update install-update --all
 ```
 
 ## Why?
