@@ -10,24 +10,34 @@ use globals::cursor_to_start;
 use std::io;
 use std::process::Command;
 
-use clap::{arg, command};
+use clap::{Parser, ValueEnum};
 
 use crate::commit::commit::{commit_descriptions, commit_message};
 use crate::selection::selection::emoji_selection;
 
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+enum Print {
+	Yes,
+	No,
+}
+
+#[derive(Parser)]
+#[command(
+	version,
+	about = "✨ Gitmojis, now oxidized! 🦀\nWhen run without arguments it performs a git commit (interactive)"
+)]
+struct CLI {
+	/// Enable signing for this specific commit
+	#[arg(short = 'S', long)]
+	sign: bool,
+
+	/// Print final git command before executing it
+	#[arg(short, long = "print-command", value_enum, default_value_t = Print::Yes)]
+	print: Print,
+}
+
 fn main() -> io::Result<()> {
-	let matches = command!()
-		.about(
-			r#"✨ Gitmojis, now oxidized! 🦀
-When run without arguments it performs a git commit (interactive)"#,
-		)
-		.arg(arg!(-S --sign "Enable signing for this specific commit"))
-		.arg(
-			arg!(-p --"print-command" <choice> "Print final git command before executing it")
-			.value_parser(["yes", "no"])
-			.default_value("yes")
-		)
-		.get_matches();
+	let args = CLI::parse();
 
 	let emojis = return_emojis();
 
@@ -46,17 +56,14 @@ When run without arguments it performs a git commit (interactive)"#,
 
 	let git_args: Vec<&str> = ["commit", "-m", final_commit_message.as_str()]
 		.into_iter()
-		.chain(matches.get_flag("sign").then_some("-S"))
+		.chain(args.sign.then_some("-S"))
 		.chain(vec!["-m"])
 		.chain(vec![descriptions_string.as_str()])
 		.collect();
 
-	let print_command: &String = matches
-		.get_one("print-command")
-		.expect("failed to read print-command");
-	if print_command == "yes" {
+	if args.print == Print::Yes {
 		println!("git commit -m {final_commit_message} -m\n{descriptions_string}");
-	};
+	}
 
 	Command::new("git")
 		.args(git_args)

@@ -9,7 +9,8 @@ repository = "https://github.com/Gabriele-Cutrona/rsmoji"
 categories = ["development-tools", "command-line-utilities"]
 
 [dependencies]
-clap = { version = "4.6.1", features = ["cargo"] }
+clap = { version = "4.6.6", features = ["cargo", "derive"] }
+# clap = { version = "4.6.1", features = ["cargo"] }
 crossterm = "0.29.0"
 unicode-segmentation = "1.12.0"
 unicode-width = "0.2.2"
