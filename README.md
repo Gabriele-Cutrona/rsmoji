@@ -83,10 +83,10 @@ Afterall it's just a simple tool that somebody experienced could recreate in ver
 - [x] Support commit description (not only title)
   - [x] go back up to a previous line to edit
 - [x] 50/72 Git Rule (not enforced, just advice)
+- [ ] Toggle commit descriptions
+- [ ] Toggle 50/72 guide
+- [ ] Themes
 - [ ] Configuration via TOML file
-  - [ ] Toggle commit descriptions
-  - [ ] Toggle 50/72 guide
-  - [ ] Themes
 - [ ] Signed Tags Messages
 - [ ] Merge messages
 - [ ] API to update emoji list dynamically (optional)
