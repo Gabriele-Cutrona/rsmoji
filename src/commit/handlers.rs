@@ -56,7 +56,7 @@ pub fn handle_backspace_commit(
 	reload_commit_message(&commit_message, state.insert_offset, text_type);
 }
 
-pub fn handle_offset_end_commit(
+pub fn handle_offset_start_commit(
 	commit_message: &str,
 	text_type: CommitTextType,
 	state: &mut UIState,
@@ -65,7 +65,7 @@ pub fn handle_offset_end_commit(
 	reload_commit_message(commit_message, state.insert_offset, text_type);
 }
 
-pub fn handle_offset_start_commit(
+pub fn handle_offset_end_commit(
 	commit_message: &str,
 	text_type: CommitTextType,
 	state: &mut UIState,

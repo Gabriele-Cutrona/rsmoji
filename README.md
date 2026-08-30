@@ -92,9 +92,10 @@ I made this for the following reasons:
 - I wanted to learn rust
 - I wanted more features (signed commit, multi-line descriptions, and the other things in the roadmap)
 
-Instead of using some higher-level TUI toolkit, I used only crossterm for the UI, which brought me great pain, but also a great learning experience.
+Instead of using some higher-level TUI toolkit, I used only crossterm for the UI, which was...
+probably not the smoothest possible experience, but it was fun and instructive nonetheless.
 It isn't an efficient or even "good" way, but... recreational programming FTW, I suppose?
-Afterall it's just a simple tool that somebody experienced could recreate in very little time with the right toolkit (I mean, if _I_ managed to do it...)
+Afterall it's just a simple tool that can be made in very little time with the right toolkit (I mean, if _I_ managed to do it...)
 
 ### Roadmap
 
@@ -104,7 +105,7 @@ Afterall it's just a simple tool that somebody experienced could recreate in ver
 - [x] 50/72 Git Rule (not enforced, just advice)
 - [ ] Toggle commit descriptions
 - [ ] Toggle 50/72 guide
-- [ ] Themes
+- [ ] Custom Accent Color
 - [ ] Configuration via TOML file
 - [ ] Signed Tags Messages
 - [ ] Merge messages
