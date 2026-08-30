@@ -11,7 +11,8 @@ use crate::{
 		CommitTextType::{Description, Title},
 		handlers::{
 			handle_backspace_commit, handle_char_commit, handle_enter_commit, handle_left_commit,
-			handle_right_commit, handle_up_commit,
+			handle_offset_end_commit, handle_offset_start_commit, handle_right_commit,
+			handle_up_commit,
 		},
 		reload_commit_message,
 	},
@@ -51,6 +52,8 @@ pub fn commit_message() -> String {
 			KeyCode::Right | KeyCode::Char('f') => {
 				handle_right_commit(&mut state, &commit_message, Title)
 			}
+			KeyCode::Char('a') => handle_offset_start_commit(&commit_message, Title, &mut state),
+			KeyCode::Char('e') => handle_offset_end_commit(&commit_message, Title, &mut state),
 			KeyCode::Enter => {
 				reload_commit_message(&commit_message, state.insert_offset, Title);
 				break;
@@ -100,6 +103,9 @@ pub fn commit_descriptions() -> Vec<String> {
 				handle_right_commit(&mut state, single_desc, desc)
 			}
 			KeyCode::Up | KeyCode::Char('p') => handle_up_commit(&mut state, &commit_descriptions),
+			KeyCode::Char('a') => handle_offset_start_commit(single_desc, desc, &mut state),
+			KeyCode::Char('e') => handle_offset_end_commit(single_desc, desc, &mut state),
+
 			KeyCode::Enter | KeyCode::Down | KeyCode::Char('n') => {
 				if commit_descriptions[state.line_count].is_empty() {
 					break;

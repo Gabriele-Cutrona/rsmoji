@@ -46,7 +46,14 @@ cargo install rsmoji
 
 Just run `rsmoji` without any additional arguments (obviously you need `git`)
 
-You can use emacs keybindings to move the cursor while typing (Ctrl b, Ctrl f, Ctrl p, Ctrl n)
+You can use emacs keybindings to move the cursor while typing:
+
+- CTRL-B to go Left
+- CTRL-F to go Right
+- CTRL-P to go Up
+- CTRL-N to go Down
+- CTRL-A to go at the start
+- CTRL-E to go at the end
 
 ## Tips - LazyGit Integration
 
@@ -67,8 +74,8 @@ customCommands:
 
 ## Tips - Update Everything
 
-If you prefer to update every crate (including rsmoji) you 
-have installed  in bulk, you can use `cargo-update`, install 
+If you prefer to update every crate (including rsmoji) you
+have installed in bulk, you can use `cargo-update`, install
 it with `cargo install cargo-update`, and then you can run:
 
 ```zsh

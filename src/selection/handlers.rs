@@ -30,6 +30,16 @@ pub fn handle_keyup(state: &mut UIState) {
 	redraw_menu(&state);
 }
 
+pub fn handle_offset_start(state: &mut UIState) {
+	state.insert_offset = 0;
+	redraw_menu(state);
+}
+
+pub fn handle_offset_end(state: &mut UIState) {
+	state.insert_offset = state.user_input.graphemes(true).count();
+	redraw_menu(state);
+}
+
 pub fn handle_left(state: &mut UIState) {
 	if state.insert_offset < state.user_input.graphemes(true).count() {
 		state.insert_offset += 1;

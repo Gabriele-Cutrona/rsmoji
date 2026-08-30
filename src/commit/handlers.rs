@@ -56,6 +56,24 @@ pub fn handle_backspace_commit(
 	reload_commit_message(&commit_message, state.insert_offset, text_type);
 }
 
+pub fn handle_offset_end_commit(
+	commit_message: &str,
+	text_type: CommitTextType,
+	state: &mut UIState,
+) {
+	state.insert_offset = commit_message.graphemes(true).count();
+	reload_commit_message(commit_message, state.insert_offset, text_type);
+}
+
+pub fn handle_offset_start_commit(
+	commit_message: &str,
+	text_type: CommitTextType,
+	state: &mut UIState,
+) {
+	state.insert_offset = 0;
+	reload_commit_message(commit_message, state.insert_offset, text_type);
+}
+
 pub fn handle_left_commit(state: &mut UIState, commit_message: &str, text_type: CommitTextType) {
 	if state.insert_offset < commit_message.graphemes(true).count() {
 		state.insert_offset += 1;

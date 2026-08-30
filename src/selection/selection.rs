@@ -8,15 +8,11 @@ use crossterm::{
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
-	globals::{CATPPUCCIN_ACTIVE, cursor_to_start, die},
-	selection::{
-		draw_menu,
-		handlers::{
-			EmojiSelected, handle_backspace, handle_char, handle_enter, handle_keydown,
-			handle_keyup, handle_left, handle_right,
+	globals::{CATPPUCCIN_ACTIVE, cursor_to_start, die}, selection::{
+		draw_menu, handlers::{
+			EmojiSelected, handle_backspace, handle_char, handle_enter, handle_keydown, handle_keyup, handle_left, handle_offset_end, handle_offset_start, handle_right,
 		},
-	},
-	ui_state::UIState,
+	}, ui_state::UIState,
 };
 
 pub fn emoji_selection(emojis: &[String]) -> String {
@@ -47,6 +43,8 @@ pub fn emoji_selection(emojis: &[String]) -> String {
 			KeyCode::Up | KeyCode::Char('p') => handle_keyup(&mut state),
 			KeyCode::Left | KeyCode::Char('b') => handle_left(&mut state),
 			KeyCode::Right | KeyCode::Char('f') => handle_right(&mut state),
+			KeyCode::Char('a') => handle_offset_start(&mut state),
+			KeyCode::Char('e') => handle_offset_end(&mut state),
 			KeyCode::Backspace => handle_backspace(&mut state, emojis),
 			KeyCode::Enter => match handle_enter(&mut state) {
 				EmojiSelected::Yes => break,
