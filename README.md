@@ -99,7 +99,7 @@ I made this for the following reasons:
 - [x] Support commit description (not only title)
   - [x] go back up to a previous line to edit
 - [x] 50/72 Git Rule (not enforced, just advice)
-- [ ] Toggle commit descriptions
+- [x] Toggle commit descriptions
 - [ ] Toggle 50/72 guide
 - [ ] Custom Accent Color
 - [ ] Configuration via TOML file

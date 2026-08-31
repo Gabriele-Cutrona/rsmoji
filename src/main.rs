@@ -28,15 +28,15 @@ enum OnOff {
 )]
 struct CLI {
 	/// Enable signing for this specific commit
-	#[arg(short = 'S', long)]
+	#[arg(short = 'S', long, value_enum, default_value = "no", num_args = 0..=1, default_missing_value = "yes")]
 	sign: OnOff,
 
 	/// Print final git command before executing it
-	#[arg(short, long = "print-command", value_enum, default_value_t = OnOff::Yes)]
+	#[arg(short, long = "print-command", value_enum, default_value = "yes", num_args = 0..=1, default_missing_value = "yes")]
 	print: OnOff,
 
 	/// enable or disable commit descriptions
-	#[arg(short, long, value_enum, default_value_t = OnOff::Yes)]
+	#[arg(short, long, value_enum, default_value = "yes", num_args = 0..=1, default_missing_value = "yes")]
 	descriptions: OnOff,
 }
 
