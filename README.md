@@ -57,7 +57,7 @@ You can use emacs keybindings to move the cursor while typing:
 
 ## Tips - LazyGit Integration
 
-I use `[lazygit](https://github.com/jesseduffield/lazygit)` regularly, and while you can use
+I use [lazygit](https://github.com/jesseduffield/lazygit) regularly, and while you can use
 it to add and push and use `rsmoji` to commit, you can also set a keybind to call rsmoji
 inside lazygit itself
 
@@ -91,11 +91,7 @@ I made this for the following reasons:
 - being faster (text flickering, startup time, etc...)
 - I wanted to learn rust
 - I wanted more features (signed commit, multi-line descriptions, and the other things in the roadmap)
-
-Instead of using some higher-level TUI toolkit, I used only crossterm for the UI, which was...
-probably not the smoothest possible experience, but it was fun and instructive nonetheless.
-It isn't an efficient or even "good" way, but... recreational programming FTW, I suppose?
-Afterall it's just a simple tool that can be made in very little time with the right toolkit (I mean, if _I_ managed to do it...)
+- I wanted and want to have fun!
 
 ### Roadmap
 
