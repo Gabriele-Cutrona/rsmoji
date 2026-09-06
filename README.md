@@ -109,7 +109,7 @@ I made this for the following reasons:
 
 ### License
 
-Licensed MIT OR Apache-2.0 (./LICENSE-MIT and ./LICENSE-APACHE respectively)
+Licensed MIT OR Apache-2.0 (./licenses/LICENSE-MIT and ./licenses/LICENSE-APACHE respectively)
 
 ### Credits
 

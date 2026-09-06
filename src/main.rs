@@ -13,6 +13,7 @@ use std::process::Command;
 use clap::{Parser, ValueEnum};
 
 use crate::commit::commit::{commit_descriptions, commit_message};
+use crate::globals::licenses;
 use crate::selection::selection::emoji_selection;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -38,10 +39,17 @@ struct CLI {
 	/// enable or disable commit descriptions
 	#[arg(short, long, value_enum, default_value = "yes", num_args = 0..=1, default_missing_value = "yes")]
 	descriptions: OnOff,
+
+	// print license information
+	#[arg(short, long, value_enum, default_value = "no", num_args = 0..=1, default_missing_value = "yes")]
+	licenses: OnOff,
 }
 
 fn main() -> io::Result<()> {
 	let args = CLI::parse();
+	if args.licenses == OnOff::Yes {
+		licenses()
+	}
 
 	let emojis = return_emojis();
 
