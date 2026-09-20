@@ -12,7 +12,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crossterm::execute;
 
 pub fn redraw_menu(state: &UIState) {
-	delete_menu(&state);
+	delete_menu(state);
 	draw_menu(state);
 }
 

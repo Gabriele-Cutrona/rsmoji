@@ -11,7 +11,7 @@ pub struct UIState {
 
 impl UIState {
 	pub fn emojis_clamp(&self) -> usize {
-		return self.filtered_emojis.len().clamp(0, MAX_LIST_LENGTH);
+		self.filtered_emojis.len().clamp(0, MAX_LIST_LENGTH)
 	}
 
 	pub fn filter_emojis(&mut self, emojis: &[String]) {

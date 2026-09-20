@@ -36,7 +36,7 @@ pub const CATPPUCCIN_INACTIVE: Color = Color::Rgb {
 pub fn licenses() {
 	const LICENSES: &str = include_str!("../licenses/third-party-licenses.html");
 	const FILE: &str = "./rsmoji-licenses.html";
-	if let Result::Ok(_) = std::fs::write(FILE, LICENSES) {
+	if std::fs::write(FILE, LICENSES).is_ok() {
 		println!("wrote to file {FILE}");
 	} else {
 		println!("Unable to write to file, writing to stdout instead");

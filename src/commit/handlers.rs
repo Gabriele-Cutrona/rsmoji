@@ -26,9 +26,6 @@ pub fn handle_char_commit(
 	args: &CLI
 ) {
 	if event.modifiers.contains(KeyModifiers::CONTROL) {
-		match c {
-			_ => {}
-		}
 		return;
 	}
 
@@ -56,7 +53,7 @@ pub fn handle_backspace_commit(
 			.parse()
 			.expect("Failed to parse commit message");
 	}
-	reload_commit_message(&commit_message, state.insert_offset, text_type, args);
+	reload_commit_message(commit_message, state.insert_offset, text_type, args);
 }
 
 pub fn handle_offset_start_commit(
@@ -87,23 +84,23 @@ pub fn handle_left_commit(
 ) {
 	if state.insert_offset < commit_message.graphemes(true).count() {
 		state.insert_offset += 1;
-		reload_commit_message(&commit_message, state.insert_offset, text_type, args);
+		reload_commit_message(commit_message, state.insert_offset, text_type, args);
 	}
 }
 
 pub fn handle_right_commit(
 	state: &mut UIState,
-	commit_message: &String,
+	commit_message: &str,
 	text_type: CommitTextType,
 	args: &CLI,
 ) {
 	if state.insert_offset != 0 {
 		state.insert_offset -= 1;
-		reload_commit_message(&commit_message, state.insert_offset, text_type, args);
+		reload_commit_message(commit_message, state.insert_offset, text_type, args);
 	}
 }
 
-pub fn handle_up_commit(state: &mut UIState, commit_descriptions: &Vec<String>, args: &CLI) {
+pub fn handle_up_commit(state: &mut UIState, commit_descriptions: &[String], args: &CLI) {
 	if state.line_count == 0 {
 		return;
 	};
@@ -135,7 +132,7 @@ pub fn handle_enter_commit(state: &mut UIState, commit_descriptions: &mut Vec<St
 	);
 	state.line_count += 1;
 	commit_descriptions.push(String::new());
-	print!("\n");
+	println!();
 	reload_commit_message(
 		&commit_descriptions[state.line_count],
 		state.insert_offset,

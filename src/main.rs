@@ -60,7 +60,7 @@ fn main() -> io::Result<()> {
 		OnOff::No => "".to_string(),
 	};
 
-	print!("\n");
+	println!();
 	cursor_to_start();
 	disable_raw_mode().expect("Failed to disable raw mode");
 

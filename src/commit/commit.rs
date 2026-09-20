@@ -56,7 +56,7 @@ pub fn commit_message(args: &CLI) -> String {
 			KeyCode::Char('a') => handle_offset_start_commit(&commit_message, Title, &mut state, args),
 			KeyCode::Char('e') => handle_offset_end_commit(&commit_message, Title, &mut state, args),
 			KeyCode::Enter => {
-				reload_commit_message(&commit_message, state.insert_offset, Title, &args);
+				reload_commit_message(&commit_message, state.insert_offset, Title, args);
 				break;
 			}
 			KeyCode::Char('c') => die(),
@@ -77,7 +77,7 @@ pub fn commit_descriptions(args: &CLI) -> Vec<String> {
 	};
 	let mut commit_descriptions: Vec<String> = vec![];
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
-	reload_commit_message(&"", state.insert_offset, Description(state.line_count), &args);
+	reload_commit_message("", state.insert_offset, Description(state.line_count), args);
 	loop {
 		let Event::Key(event) = read().expect("Failed to read crossterm event") else {
 			continue;

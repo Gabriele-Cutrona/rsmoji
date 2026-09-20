@@ -98,7 +98,7 @@ pub fn reload_commit_message(
 			execute!(io::stdout(), MoveToColumn(cols as u16))
 				.expect("Failed to move cursor to writing position");
 		}
-		*guard = *guard - rows as u16;
+		*guard -= rows as u16;
 	} else {
 		execute!(io::stdout(), MoveToColumn(cols as u16))
 			.expect("Failed to move cursor to writing position");

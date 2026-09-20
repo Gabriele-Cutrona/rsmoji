@@ -27,7 +27,7 @@ pub fn handle_keyup(state: &mut UIState) {
 	} else if state.selection >= 1 {
 		state.selection -= 1;
 	}
-	redraw_menu(&state);
+	redraw_menu(state);
 }
 
 pub fn handle_offset_start(state: &mut UIState) {
@@ -43,21 +43,21 @@ pub fn handle_offset_end(state: &mut UIState) {
 pub fn handle_left(state: &mut UIState) {
 	if state.insert_offset < state.user_input.graphemes(true).count() {
 		state.insert_offset += 1;
-		redraw_menu(&state);
+		redraw_menu(state);
 	}
 }
 
 pub fn handle_right(state: &mut UIState) {
 	if state.insert_offset != 0 {
 		state.insert_offset -= 1;
-		redraw_menu(&state);
+		redraw_menu(state);
 	}
 }
 
 pub fn handle_char(c: char, state: &mut UIState, emojis: &[String]) {
 	state.offset = 0;
 	state.selection = 0;
-	delete_menu(&state);
+	delete_menu(state);
 	let mut graphemes: Vec<&str> = state.user_input.graphemes(true).collect();
 	let cs = c.to_string();
 	graphemes.insert(
@@ -65,7 +65,7 @@ pub fn handle_char(c: char, state: &mut UIState, emojis: &[String]) {
 		&cs,
 	);
 	state.user_input = graphemes.concat();
-	state.filter_emojis(&emojis);
+	state.filter_emojis(emojis);
 	draw_menu(state);
 }
 
@@ -78,17 +78,17 @@ pub fn handle_enter(state: &UIState) -> EmojiSelected {
 	if state.filtered_emojis.is_empty() {
 		return EmojiSelected::No;
 	}
-	delete_menu(&state);
+	delete_menu(state);
 	EmojiSelected::Yes
 }
 
 pub fn handle_backspace(state: &mut UIState, emojis: &[String]) {
-	delete_menu(&state);
+	delete_menu(state);
 	let mut graphemes: Vec<&str> = state.user_input.graphemes(true).collect();
 	if !state.user_input.is_empty() && graphemes.len() > state.insert_offset {
 		graphemes.remove(graphemes.len() - state.insert_offset - 1);
 		state.user_input = graphemes.concat();
 	}
-	state.filter_emojis(&emojis);
-	draw_menu(&state);
+	state.filter_emojis(emojis);
+	draw_menu(state);
 }

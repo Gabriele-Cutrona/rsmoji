@@ -24,7 +24,7 @@ pub fn emoji_selection(emojis: &[String]) -> String {
 		insert_offset: 0,
 		line_count: 0,
 	};
-	state.filter_emojis(&emojis);
+	state.filter_emojis(emojis);
 	draw_menu(&state);
 	loop {
 		let Event::Key(event) = read().expect("Failed to read crossterm event") else {
@@ -46,7 +46,7 @@ pub fn emoji_selection(emojis: &[String]) -> String {
 			KeyCode::Char('a') => handle_offset_start(&mut state),
 			KeyCode::Char('e') => handle_offset_end(&mut state),
 			KeyCode::Backspace => handle_backspace(&mut state, emojis),
-			KeyCode::Enter => match handle_enter(&mut state) {
+			KeyCode::Enter => match handle_enter(&state) {
 				EmojiSelected::Yes => break,
 				EmojiSelected::No => {}
 			},
