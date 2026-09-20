@@ -7,6 +7,7 @@ use crossterm::{
 };
 
 use crate::{
+	CLI,
 	commit::{
 		CommitTextType::{Description, Title},
 		handlers::{
@@ -20,7 +21,7 @@ use crate::{
 	ui_state::UIState,
 };
 
-pub fn commit_message() -> String {
+pub fn commit_message(args: &CLI) -> String {
 	let mut state = UIState {
 		offset: 0,
 		selection: 2,
@@ -31,7 +32,7 @@ pub fn commit_message() -> String {
 	};
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down by one line");
 	let mut commit_message: String = String::new();
-	reload_commit_message(&commit_message, state.insert_offset, Title);
+	reload_commit_message(&commit_message, state.insert_offset, Title, args);
 	loop {
 		let Event::Key(event) = read().expect("Failed to read crossterm event") else {
 			continue;
@@ -43,19 +44,19 @@ pub fn commit_message() -> String {
 
 		match event.code {
 			KeyCode::Char(c) if !event.modifiers.contains(KeyModifiers::CONTROL) => {
-				handle_char_commit(c, event, &mut state, &mut commit_message, Title)
+				handle_char_commit(c, event, &mut state, &mut commit_message, Title, args)
 			}
-			KeyCode::Backspace => handle_backspace_commit(&mut state, &mut commit_message, Title),
+			KeyCode::Backspace => handle_backspace_commit(&mut state, &mut commit_message, Title, args),
 			KeyCode::Left | KeyCode::Char('b') => {
-				handle_left_commit(&mut state, &commit_message, Title)
+				handle_left_commit(&mut state, &commit_message, Title, args)
 			}
 			KeyCode::Right | KeyCode::Char('f') => {
-				handle_right_commit(&mut state, &commit_message, Title)
+				handle_right_commit(&mut state, &commit_message, Title, args)
 			}
-			KeyCode::Char('a') => handle_offset_start_commit(&commit_message, Title, &mut state),
-			KeyCode::Char('e') => handle_offset_end_commit(&commit_message, Title, &mut state),
+			KeyCode::Char('a') => handle_offset_start_commit(&commit_message, Title, &mut state, args),
+			KeyCode::Char('e') => handle_offset_end_commit(&commit_message, Title, &mut state, args),
 			KeyCode::Enter => {
-				reload_commit_message(&commit_message, state.insert_offset, Title);
+				reload_commit_message(&commit_message, state.insert_offset, Title, &args);
 				break;
 			}
 			KeyCode::Char('c') => die(),
@@ -65,7 +66,7 @@ pub fn commit_message() -> String {
 	commit_message
 }
 
-pub fn commit_descriptions() -> Vec<String> {
+pub fn commit_descriptions(args: &CLI) -> Vec<String> {
 	let mut state = UIState {
 		offset: 0,
 		selection: 2,
@@ -76,7 +77,7 @@ pub fn commit_descriptions() -> Vec<String> {
 	};
 	let mut commit_descriptions: Vec<String> = vec![];
 	execute!(io::stdout(), MoveDown(1)).expect("Failed to move cursor down one line");
-	reload_commit_message(&"", state.insert_offset, Description(state.line_count));
+	reload_commit_message(&"", state.insert_offset, Description(state.line_count), &args);
 	loop {
 		let Event::Key(event) = read().expect("Failed to read crossterm event") else {
 			continue;
@@ -95,22 +96,22 @@ pub fn commit_descriptions() -> Vec<String> {
 
 		match event.code {
 			KeyCode::Char(c) if !event.modifiers.contains(KeyModifiers::CONTROL) => {
-				handle_char_commit(c, event, &mut state, single_desc, desc)
+				handle_char_commit(c, event, &mut state, single_desc, desc, args)
 			}
-			KeyCode::Backspace => handle_backspace_commit(&mut state, single_desc, desc),
-			KeyCode::Left | KeyCode::Char('b') => handle_left_commit(&mut state, single_desc, desc),
+			KeyCode::Backspace => handle_backspace_commit(&mut state, single_desc, desc, args),
+			KeyCode::Left | KeyCode::Char('b') => handle_left_commit(&mut state, single_desc, desc, args),
 			KeyCode::Right | KeyCode::Char('f') => {
-				handle_right_commit(&mut state, single_desc, desc)
+				handle_right_commit(&mut state, single_desc, desc, args)
 			}
-			KeyCode::Up | KeyCode::Char('p') => handle_up_commit(&mut state, &commit_descriptions),
-			KeyCode::Char('a') => handle_offset_start_commit(single_desc, desc, &mut state),
-			KeyCode::Char('e') => handle_offset_end_commit(single_desc, desc, &mut state),
+			KeyCode::Up | KeyCode::Char('p') => handle_up_commit(&mut state, &commit_descriptions, args),
+			KeyCode::Char('a') => handle_offset_start_commit(single_desc, desc, &mut state, args),
+			KeyCode::Char('e') => handle_offset_end_commit(single_desc, desc, &mut state, args),
 
 			KeyCode::Enter | KeyCode::Down | KeyCode::Char('n') => {
 				if commit_descriptions[state.line_count].is_empty() {
 					break;
 				}
-				handle_enter_commit(&mut state, &mut commit_descriptions);
+				handle_enter_commit(&mut state, &mut commit_descriptions, args);
 			}
 			KeyCode::Char('c') => die(),
 			_ => {}

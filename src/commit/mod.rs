@@ -1,7 +1,8 @@
 pub mod commit;
 pub mod handlers;
 
-use crate::globals::{CATPPUCCIN_ACTIVE, cursor_to_start};
+use crate::CLI;
+use crate::globals::{CATPPUCCIN_ACTIVE, OnOff, cursor_to_start};
 use crossterm::cursor::{MoveToColumn, MoveUp};
 use crossterm::style::{Attribute, Print, SetAttribute, SetForegroundColor};
 use crossterm::terminal::{Clear, ClearType};
@@ -26,17 +27,31 @@ pub fn reload_commit_message(
 	commit_message: &str,
 	insert_offset: usize,
 	text_type: CommitTextType,
+	args: &CLI,
 ) {
 	let commit_message = commit_message.to_owned();
 	let length = commit_message.graphemes(true).count();
 
+	let guide = if args.guide == OnOff::Yes {
+		format!(
+			" {:02}/{}",
+			length,
+			if let CommitTextType::Title = text_type {
+				MAX_TITLE_CHARS
+			} else {
+				MAX_DESCRIPTION_CHARS
+			}
+		)
+	} else {
+		String::new()
+	};
+
 	let text = match text_type {
-		CommitTextType::Title => format!("? Commit Title {:02}/{MAX_TITLE_CHARS}: ", length),
+		CommitTextType::Title => {
+			format!("? Commit Title{guide}: ")
+		}
 		CommitTextType::Description(line_count) => {
-			format!(
-				"? (line {line_count}) Commit Description (empty to confirm) {:02}/{MAX_DESCRIPTION_CHARS}: ",
-				length
-			)
+			format!("? (line {line_count}) Commit Description (empty to confirm){guide}: ")
 		}
 	};
 

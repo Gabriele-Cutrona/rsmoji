@@ -1,3 +1,4 @@
+use clap::ValueEnum;
 use crossterm::{cursor::MoveToColumn, execute, style::Color, terminal::disable_raw_mode};
 use std::io;
 
@@ -10,6 +11,12 @@ pub fn die() {
 	cursor_to_start();
 	disable_raw_mode().expect("Failed to disable raw mode");
 	std::process::exit(0);
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+pub enum OnOff {
+	Yes,
+	No,
 }
 
 pub const MAX_LIST_LENGTH: usize = 6;

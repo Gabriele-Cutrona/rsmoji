@@ -10,24 +10,18 @@ use globals::cursor_to_start;
 use std::io;
 use std::process::Command;
 
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 
 use crate::commit::commit::{commit_descriptions, commit_message};
-use crate::globals::licenses;
+use crate::globals::{licenses, OnOff};
 use crate::selection::selection::emoji_selection;
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-enum OnOff {
-	Yes,
-	No,
-}
 
 #[derive(Parser)]
 #[command(
 	version,
 	about = "✨ Gitmojis, now oxidized! 🦀\nWhen run without arguments it performs a git commit (interactive)"
 )]
-struct CLI {
+pub struct CLI {
 	/// Enable signing for this specific commit
 	#[arg(short = 'S', long, value_enum, default_value = "no", num_args = 0..=1, default_missing_value = "yes")]
 	sign: OnOff,
@@ -39,6 +33,10 @@ struct CLI {
 	/// enable or disable commit descriptions
 	#[arg(short, long, value_enum, default_value = "yes", num_args = 0..=1, default_missing_value = "yes")]
 	descriptions: OnOff,
+
+	// enable 50/72 git commit guide
+	#[arg(short, long, value_enum, default_value = "yes", num_args = 0..=1, default_missing_value = "yes")]
+	guide: OnOff,
 
 	// print license information
 	#[arg(short, long, value_enum, default_value = "no", num_args = 0..=1, default_missing_value = "yes")]
@@ -56,9 +54,9 @@ fn main() -> io::Result<()> {
 	enable_raw_mode().expect("Failed to enable raw mode");
 
 	let gitmoji = emoji_selection(&emojis);
-	let commit_message = commit_message();
+	let commit_message = commit_message(&args);
 	let commit_descriptions: String = match args.descriptions {
-		OnOff::Yes => commit_descriptions().join("\n").trim().to_string(),
+		OnOff::Yes => commit_descriptions(&args).join("\n").trim().to_string(),
 		OnOff::No => "".to_string(),
 	};
 
