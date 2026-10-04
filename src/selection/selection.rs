@@ -10,7 +10,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::{
 	globals::{CATPPUCCIN_ACTIVE, cursor_to_start, die}, selection::{
 		draw_menu, handlers::{
-			EmojiSelected, handle_backspace, handle_char, handle_enter, handle_keydown, handle_keyup, handle_left, handle_offset_end, handle_offset_start, handle_right,
+			EmojiSelected, handle_backspace, handle_char, handle_delete, handle_enter, handle_keydown, handle_keyup, handle_left, handle_offset_end, handle_offset_start, handle_right,
 		},
 	}, ui_state::UIState,
 };
@@ -45,6 +45,7 @@ pub fn emoji_selection(emojis: &[String]) -> String {
 			KeyCode::Right | KeyCode::Char('f') => handle_right(&mut state),
 			KeyCode::Char('a') => handle_offset_start(&mut state),
 			KeyCode::Char('e') => handle_offset_end(&mut state),
+			KeyCode::Delete | KeyCode::Char('d') => handle_delete(&mut state, emojis),
 			KeyCode::Backspace => handle_backspace(&mut state, emojis),
 			KeyCode::Enter => match handle_enter(&state) {
 				EmojiSelected::Yes => break,

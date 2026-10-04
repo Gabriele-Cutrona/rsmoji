@@ -7,18 +7,11 @@ use crossterm::{
 };
 
 use crate::{
-	CLI,
-	commit::{
-		CommitTextType::{Description, Title},
-		handlers::{
-			handle_backspace_commit, handle_char_commit, handle_enter_commit, handle_left_commit,
-			handle_offset_end_commit, handle_offset_start_commit, handle_right_commit,
-			handle_up_commit,
-		},
-		reload_commit_message,
-	},
-	globals::die,
-	ui_state::UIState,
+	CLI, commit::{
+		CommitTextType::{Description, Title}, handlers::{
+			handle_backspace_commit, handle_char_commit, handle_delete_commit, handle_enter_commit, handle_left_commit, handle_offset_end_commit, handle_offset_start_commit, handle_right_commit, handle_up_commit,
+		}, reload_commit_message,
+	}, globals::die, ui_state::UIState,
 };
 
 pub fn commit_message(args: &CLI) -> String {
@@ -55,6 +48,7 @@ pub fn commit_message(args: &CLI) -> String {
 			}
 			KeyCode::Char('a') => handle_offset_start_commit(&commit_message, Title, &mut state, args),
 			KeyCode::Char('e') => handle_offset_end_commit(&commit_message, Title, &mut state, args),
+			KeyCode::Delete | KeyCode::Char('d') => handle_delete_commit(&mut state, &mut commit_message, Title, args),
 			KeyCode::Enter => {
 				reload_commit_message(&commit_message, state.insert_offset, Title, args);
 				break;
@@ -106,7 +100,7 @@ pub fn commit_descriptions(args: &CLI) -> Vec<String> {
 			KeyCode::Up | KeyCode::Char('p') => handle_up_commit(&mut state, &commit_descriptions, args),
 			KeyCode::Char('a') => handle_offset_start_commit(single_desc, desc, &mut state, args),
 			KeyCode::Char('e') => handle_offset_end_commit(single_desc, desc, &mut state, args),
-
+			KeyCode::Char('d') => handle_delete_commit(&mut state, single_desc, desc, args),
 			KeyCode::Enter | KeyCode::Down | KeyCode::Char('n') => {
 				if commit_descriptions[state.line_count].is_empty() {
 					break;

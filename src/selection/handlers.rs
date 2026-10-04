@@ -92,3 +92,15 @@ pub fn handle_backspace(state: &mut UIState, emojis: &[String]) {
 	state.filter_emojis(emojis);
 	draw_menu(state);
 }
+
+pub fn handle_delete(state: &mut UIState, emojis: &[String]) {
+	delete_menu(state);
+	let mut graphemes: Vec<&str> = state.user_input.graphemes(true).collect();
+	if !state.user_input.is_empty() && graphemes.len() >= state.insert_offset && state.insert_offset > 0 {
+		graphemes.remove(graphemes.len().saturating_sub(state.insert_offset));
+		state.insert_offset -= 1;
+		state.user_input = graphemes.concat();
+	}
+	state.filter_emojis(emojis);
+	draw_menu(state);
+}
