@@ -65,7 +65,7 @@ pub fn reload_commit_message(
 		// for some reason MoveUp(0) is the same as MoveUp(1)
 		execute!(io::stdout(), MoveUp(*guard)).expect("Failed to move up");
 	}
-	*guard = if total.width() as u16 % t_cols == 0 {
+	*guard = if total.width().is_multiple_of(t_cols as usize) {
 		(total.width() as u16 / t_cols) - 1
 	} else {
 		total.width() as u16 / t_cols
