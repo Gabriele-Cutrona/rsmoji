@@ -63,7 +63,10 @@ pub fn handle_delete_commit(
 	args: &CLI,
 ) {
 	let mut graphemes: Vec<&str> = commit_message.graphemes(true).collect();
-	if !commit_message.is_empty() && graphemes.len() >= state.insert_offset && state.insert_offset > 0 {
+	if !commit_message.is_empty()
+		&& graphemes.len() >= state.insert_offset
+		&& state.insert_offset > 0
+	{
 		graphemes.remove(graphemes.len().saturating_sub(state.insert_offset));
 		state.insert_offset -= 1;
 		*commit_message = graphemes

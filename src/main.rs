@@ -13,7 +13,7 @@ use std::process::Command;
 use clap::Parser;
 
 use crate::commit::commit::{commit_descriptions, commit_message};
-use crate::globals::{licenses, OnOff};
+use crate::globals::{OnOff, licenses};
 use crate::selection::selection::emoji_selection;
 
 #[derive(Parser)]
