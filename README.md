@@ -54,6 +54,7 @@ You can use emacs keybindings to move the cursor while typing:
 - CTRL-N to go Down
 - CTRL-A to go at the start
 - CTRL-E to go at the end
+- CTRL-D to delete (forward)
 
 ## Tips - LazyGit Integration
 
